@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 
 public class EmployeeDataProcessor {
-    private static final String ERROR_LOG = "error.log";
     private Map<String, Department> departments = new HashMap<>();
     private CustomFileHandler fileHandler = new CustomFileHandler(); // Измените на CustomFileHandler
 
@@ -57,11 +56,11 @@ public class EmployeeDataProcessor {
     }
 
     private void logError(String message) {
-        fileHandler.logError(message, ERROR_LOG);
+        fileHandler.logError(message, Constants.ERROR_LOG);
     }
 
     private void clearErrorLog() {
-        try (PrintWriter out = new PrintWriter(new FileWriter(ERROR_LOG, false))) { // false для перезаписи
+        try (PrintWriter out = new PrintWriter(new FileWriter(Constants.ERROR_LOG, false))) { // false для перезаписи
             // Просто создаем пустой файл
         } catch (IOException e) {
             System.err.println("Error clearing error log: " + e.getMessage());

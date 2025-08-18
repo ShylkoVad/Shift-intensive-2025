@@ -31,7 +31,7 @@ public class CustomFileHandler {
                     parseLine(line, departments);
                 } catch (InvalidEmployeeDataException e) {
                     // Логируем ошибку
-                    logError(e.getMessage(), ERROR_LOG);
+                    logError(e.getMessage(), Constants.ERROR_LOG);
                 }
             }
         } catch (IOException e) {
