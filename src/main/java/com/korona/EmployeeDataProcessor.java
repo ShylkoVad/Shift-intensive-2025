@@ -10,7 +10,7 @@ import java.util.Map;
 
 public class EmployeeDataProcessor {
     private Map<String, Department> departments = new HashMap<>();
-    private CustomFileHandler fileHandler = new CustomFileHandler(); // Измените на CustomFileHandler
+    private CustomFileHandler fileHandler = new CustomFileHandler();
 
     public EmployeeDataProcessor() throws IOException {
     }
@@ -53,10 +53,6 @@ public class EmployeeDataProcessor {
     private void generateOutputFiles(Map<String, String> params) {
         // Реализуйте логику для генерации выходных файлов и статистики
         // Сортировка и вывод в зависимости от параметров
-    }
-
-    private void logError(String message) {
-        fileHandler.logError(message, Constants.ERROR_LOG);
     }
 
     private void clearErrorLog() {
