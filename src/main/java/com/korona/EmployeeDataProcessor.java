@@ -1,9 +1,7 @@
 package com.korona;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +9,7 @@ import java.util.Map;
 public class EmployeeDataProcessor {
     private Map<String, Department> departments = new HashMap<>();
     private CustomFileHandler fileHandler = new CustomFileHandler();
+    private FileManager fileManager = new FileManager();
 
     public EmployeeDataProcessor() throws IOException {
     }
@@ -20,7 +19,7 @@ public class EmployeeDataProcessor {
         Map<String, String> params = processor.parseArgs(args);
 
         // Очистка файла error.log в начале программы
-        processor.clearErrorLog();
+        processor.fileManager.clearErrorLog();
 
         // Получаем список файлов
         List<File> sbFiles = processor.fileHandler.getSbFiles();
@@ -55,11 +54,5 @@ public class EmployeeDataProcessor {
         // Сортировка и вывод в зависимости от параметров
     }
 
-    private void clearErrorLog() {
-        try (PrintWriter out = new PrintWriter(new FileWriter(Constants.ERROR_LOG, false))) { // false для перезаписи
-            // Просто создаем пустой файл
-        } catch (IOException e) {
-            System.err.println("Error clearing error log: " + e.getMessage());
-        }
-    }
+
 }
