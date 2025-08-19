@@ -7,11 +7,15 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class CustomFileHandler {
+
+    ParseLine parseLine = new ParseLine();
 
     public List<File> getSbFiles() {
         File dir = new File(".");
@@ -21,51 +25,22 @@ public class CustomFileHandler {
     }
 
     public void processFile(File file, Map<String, Department> departments) {
+        Set<String> employeeIds = new HashSet<>(); // Создаем множество для employee IDs
+        Set<String> managerIds = new HashSet<>(); // Создаем множество для manager IDs
+
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = br.readLine()) != null) {
                 try {
                     // Попытка распарсить и обработать строку
-                    parseLine(line, departments);
-                } catch (InvalidEmployeeDataException e) {
+                    parseLine.parseLine(line, departments, employeeIds, managerIds); // Передаем все необходимые аргументы
+                } catch (ParseLine.InvalidEmployeeDataException e) {
                     // Логируем ошибку
                     logError(e.getMessage(), Constants.ERROR_LOG);
                 }
             }
         } catch (IOException e) {
             System.err.println("Error reading file: " + file.getName() + " - " + e.getMessage());
-        }
-    }
-
-
-    public void parseLine(String line, Map<String, Department> departments) throws InvalidEmployeeDataException {
-        String[] parts = line.split(",");
-        if (parts.length < 5) {
-            throw new InvalidEmployeeDataException("Not enough data: " + line);
-        }
-
-        String type = parts[0];
-        String id = parts[1];
-        String name = parts[2];
-        String salaryStr = parts[3];
-        String departmentId = parts[4];
-
-        // Проверка зарплаты
-        double salary;
-        try {
-            salary = Double.parseDouble(salaryStr);
-            if (salary < 0) {
-                throw new InvalidEmployeeDataException("Invalid salary for employee: " + line);
-            }
-        } catch (NumberFormatException e) {
-            throw new InvalidEmployeeDataException("Invalid salary for employee: " + line);
-        }
-
-        // Обработка данных в зависимости от типа
-        if (type.equals("Employee")) {
-            // Создать и добавить сотрудника
-        } else if (type.equals("Manager")) {
-            // Создать и добавить менеджера
         }
     }
 
@@ -84,11 +59,8 @@ public class CustomFileHandler {
                 System.out.println(line);
             }
         } catch (IOException e) {
-            logError("Error reading file " + file.getName() + ": " + e.getMessage());
+            logError("Error reading file " + file.getName() + ": " + e.getMessage(), Constants.ERROR_LOG); // Передаем имя файла журнала
         }
-    }
-
-    private void logError(String s) {
     }
 
     public void printAllFilesContents(List<File> files) {
@@ -96,12 +68,6 @@ public class CustomFileHandler {
             System.out.println("Contents of file: " + file.getName());
             printFileContents(file);
             System.out.println(); // Пустая строка для разделения выводов разных файлов
-        }
-    }
-
-    public class InvalidEmployeeDataException extends Exception {
-        public InvalidEmployeeDataException(String message) {
-            super(message);
         }
     }
 }
