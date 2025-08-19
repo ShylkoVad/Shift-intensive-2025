@@ -13,8 +13,6 @@ import java.util.stream.Collectors;
 
 public class CustomFileHandler {
 
-    public static final String ERROR_LOG = "error.log"; // Путь к файлу
-
     public List<File> getSbFiles() {
         File dir = new File(".");
         return Arrays.stream(dir.listFiles())
@@ -69,15 +67,6 @@ public class CustomFileHandler {
         } else if (type.equals("Manager")) {
             // Создать и добавить менеджера
         }
-    }
-
-    private String getDepartmentNameByManagerId(Map<String, Department> departments, String managerId) {
-        for (Department department : departments.values()) {
-            if (department.getManagerId().equals(managerId)) {
-                return department.getName();
-            }
-        }
-        return null;
     }
 
     public void logError(String message, String logFile) {
