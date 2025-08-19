@@ -1,5 +1,6 @@
 package com.korona;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -51,8 +52,8 @@ public class ParseLine {
             department.setManager(manager); // Устанавливаем менеджера в департамент
             managerIds.add(id); // Добавляем ID менеджера в множество
 
-            // Создаем файл с именем departmentManagerID
-            fileManager.createDepartmentFile(departmentManagerID);
+            // Создаем файл с именем departmentManagerID и записываем менеджера
+            fileManager.createDepartmentFile(departmentManagerID, List.of(manager.toString())); // Записываем менеджера
 
             // Возвращаем departmentManagerID
             return departmentManagerID;
