@@ -38,6 +38,11 @@ public class FileManager {
 
     public void appendEmployeeToDepartmentFile(String departmentManagerID, String employeeData) {
         File file = new File(departmentManagerID + ".sb"); // Создаем файл с расширением .sb
+        if (!file.exists()) {
+            System.err.println("Error: File for department manager ID " + departmentManagerID + " does not exist.");
+            return; // Возвращаемся, если файл не существует
+        }
+
         try {
             // Записываем employee в файл
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
