@@ -36,6 +36,19 @@ public class FileManager {
         }
     }
 
+    public void appendEmployeeToDepartmentFile(String departmentManagerID, String employeeData) {
+        File file = new File(departmentManagerID + ".sb"); // Создаем файл с расширением .sb
+        try {
+            // Записываем employee в файл
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
+                writer.write(employeeData);
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            System.err.println("Error appending employee data for department manager ID " + departmentManagerID + ": " + e.getMessage());
+        }
+    }
+
     // Метод для вывода departmentManagerID на экран
     public void printDepartmentManagerID(String departmentManagerID) {
         System.out.println("Department Manager ID: " + departmentManagerID);

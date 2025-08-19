@@ -18,7 +18,7 @@ public class ParseLine {
         String id = parts[1].trim();
         String name = parts[2].trim();
         String salaryStr = parts[3].trim();
-        String departmentManagerID = parts[4].trim();
+        String departmentManagerID = parts[4].trim(); // Это ID менеджера
 
         // Проверка зарплаты
         double salary;
@@ -37,6 +37,29 @@ public class ParseLine {
                 throw new InvalidEmployeeDataException("Duplicate employee ID: " + id);
             }
             employeeIds.add(id); // Добавляем ID сотрудника в множество
+
+            // Найти менеджера по его ID и получить название департамента
+            Manager manager = null;
+            for (Department department : departments.values()) {
+                if (department.getManager() != null && department.getManager().getId().equals(departmentManagerID)) {
+                    manager = department.getManager();
+                    break;
+                }
+            }
+
+            if (manager == null) {
+                throw new InvalidEmployeeDataException("Manager not found for ID: " + departmentManagerID);
+            }
+
+            // Создаем объект Employee
+            Employee employee = new Employee(id, name, salary, departmentManagerID);
+
+            // Получаем имя департамента
+            String departmentName = manager.getDepartmentId(); // Имя департамента
+
+            // Записываем данные сотрудника в файл
+            fileManager.appendEmployeeToDepartmentFile(departmentName, employee.toString());
+
         } else if (type.equals("Manager")) {
             if (managerIds.contains(id)) {
                 throw new InvalidEmployeeDataException("Duplicate manager ID: " + id);
