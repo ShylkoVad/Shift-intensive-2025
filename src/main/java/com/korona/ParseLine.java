@@ -44,12 +44,12 @@ public class ParseLine {
             }
 
             // Создаем или получаем департамент
-            Department department = departments.computeIfAbsent(departmentId, k -> new Department(departmentId, "Название департамента")); // Замените "Название департамента" на реальное название
+            Department department = departments.computeIfAbsent(departmentManagerID, k -> new Department(departmentManagerID));
             if (department.getManager() != null) {
-                throw new InvalidEmployeeDataException("Department already has a manager: " + departmentId);
+                throw new InvalidEmployeeDataException("Department already has a manager: " + departmentManagerID);
             }
 
-            Manager manager = new Manager(id, name, salary, departmentId); // Создаем менеджера
+            Manager manager = new Manager(id, name, salary, departmentManagerID); // Создаем менеджера
             department.setManager(manager); // Устанавливаем менеджера в департамент
             managerIds.add(id); // Добавляем ID менеджера в множество
 
