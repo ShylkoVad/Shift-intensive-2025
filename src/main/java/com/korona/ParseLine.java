@@ -5,8 +5,7 @@ import java.util.Set;
 
 public class ParseLine {
 
-    public void parseLine(String line, Map<String, Department> departments, Set<String> employeeIds, Set<String> managerIds) throws InvalidEmployeeDataException {
-
+    public String parseLine(String line, Map<String, Department> departments, Set<String> employeeIds, Set<String> managerIds) throws InvalidEmployeeDataException {
         FileManager fileManager = new FileManager();
 
         String[] parts = line.split(",");
@@ -36,7 +35,6 @@ public class ParseLine {
             if (employeeIds.contains(id)) {
                 throw new InvalidEmployeeDataException("Duplicate employee ID: " + id);
             }
-            // Сотрудники не имеют прямой связи с департаментами
             employeeIds.add(id); // Добавляем ID сотрудника в множество
         } else if (type.equals("Manager")) {
             if (managerIds.contains(id)) {
@@ -55,7 +53,12 @@ public class ParseLine {
 
             // Создаем файл с именем departmentManagerID
             fileManager.createDepartmentFile(departmentManagerID);
+
+            // Возвращаем departmentManagerID
+            return departmentManagerID;
         }
+
+        return null; // Если не менеджер, возвращаем null
     }
 
     public class InvalidEmployeeDataException extends Exception {
