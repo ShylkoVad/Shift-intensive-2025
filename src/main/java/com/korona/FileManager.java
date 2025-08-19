@@ -1,13 +1,15 @@
 package com.korona;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 
 public class FileManager {
 
-    public void createDepartmentFile(String departmentManagerID) {
+    public void createDepartmentFile(String departmentManagerID, List<String> managers) {
         File file = new File(departmentManagerID + ".sb"); // Создаем файл с расширением .sb
         try {
             // Создаем новый файл, если он не существует
@@ -19,6 +21,14 @@ public class FileManager {
                 try (PrintWriter writer = new PrintWriter(new FileWriter(file, false))) {
                     // Очищаем файл, просто открыв его с параметром false
                     System.out.println("File exists. Contents will be overwritten: " + file.getName());
+                }
+            }
+
+            // Записываем менеджеров в файл
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
+                for (String manager : managers) {
+                    writer.write(manager);
+                    writer.newLine();
                 }
             }
         } catch (IOException e) {
