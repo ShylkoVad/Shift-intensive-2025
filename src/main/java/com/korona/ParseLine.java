@@ -4,7 +4,11 @@ import java.util.Map;
 import java.util.Set;
 
 public class ParseLine {
+
     public void parseLine(String line, Map<String, Department> departments, Set<String> employeeIds, Set<String> managerIds) throws InvalidEmployeeDataException {
+
+        FileManager fileManager = new FileManager();
+
         String[] parts = line.split(",");
         if (parts.length < 5) {
             throw new InvalidEmployeeDataException("Not enough data: " + line);
@@ -14,7 +18,7 @@ public class ParseLine {
         String id = parts[1].trim();
         String name = parts[2].trim();
         String salaryStr = parts[3].trim();
-        String departmentId = parts[4].trim();
+        String departmentManagerID = parts[4].trim();
 
         // Проверка зарплаты
         double salary;
@@ -48,6 +52,9 @@ public class ParseLine {
             Manager manager = new Manager(id, name, salary, departmentId); // Создаем менеджера
             department.setManager(manager); // Устанавливаем менеджера в департамент
             managerIds.add(id); // Добавляем ID менеджера в множество
+
+            // Создаем файл с именем departmentManagerID
+            fileManager.createDepartmentFile(departmentManagerID);
         }
     }
 
