@@ -2,7 +2,6 @@ package com.korona;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
 @Data
@@ -15,4 +14,9 @@ public class Employee {
     private double salary;
     private String managerId;
 
+    @Override
+    public String toString() {
+        return String.format("Employee,%s,%s,%s,%s", id, name, (salary % 1 == 0) ? String.format("%.0f", salary) : salary, managerId);
+
+    }
 }
