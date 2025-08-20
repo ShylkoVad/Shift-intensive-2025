@@ -59,11 +59,6 @@ public class FileManager {
         }
     }
 
-    // Метод для вывода departmentManagerID на экран
-    public void printDepartmentManagerID(String departmentManagerID) {
-        System.out.println("Department Manager ID: " + departmentManagerID);
-    }
-
     public void clearErrorLog() {
         try (PrintWriter out = new PrintWriter(new FileWriter(Constants.ERROR_LOG, false))) { // false для перезаписи
             // Просто создаем пустой файл
