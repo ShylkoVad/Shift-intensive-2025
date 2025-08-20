@@ -24,7 +24,7 @@ public class EmployeeDataValidator {
 
     public boolean isSalaryValid(String line) {
         String[] parts = splitLine(line);
-        String salaryStr = parts[3].trim(); // Идентификатор — это четвертое значение в строке
+        String salaryStr = parts[3]; // Идентификатор — это четвертое значение в строке
         double salary;
         try {
             if (salaryStr.isEmpty()) {
@@ -47,34 +47,39 @@ public class EmployeeDataValidator {
     public void checkForDuplicateIds(List<String> lines, Set<String> employeeIds, Set<String> managerIds, List<String> validLines) {
         Map<String, List<String>> idToLinesMap = new HashMap<>(); // Словарь для хранения строк по идентификаторам
         Set<String> duplicates = new HashSet<>(); // Множество для хранения дублирующихся идентификаторов
+        Set<String> managerNames = new HashSet<>(); // Множество для хранения имен менеджеров
 
         for (String line : lines) {
-            String employeeId = extractEmployeeId(line); // Извлекаем ID из строки
+            String[] parts = splitLine(line);
+            String employeeId = parts[1]; // Предполагаем, что ID — это второе значение
+            String managerName = parts[2]; // Предполагаем, что имя менеджера — это третье значение
+
+            // Проверяем дубликаты по ID
             idToLinesMap.putIfAbsent(employeeId, new ArrayList<>()); // Инициализируем список строк для данного ID
             idToLinesMap.get(employeeId).add(line); // Добавляем строку в список строк для данного ID
-        }
 
-        // Проверяем на дубликаты
-        for (Map.Entry<String, List<String>> entry : idToLinesMap.entrySet()) {
-            if (entry.getValue().size() > 1) { // Если больше одной строки с одинаковым ID
-                duplicates.add(entry.getKey()); // Добавляем ID в множество дубликатов
-                for (String duplicateLine : entry.getValue()) {
-                    logger.logError(duplicateLine); // Записываем строку в лог
+            // Проверка на дубликаты имен менеджеров
+            if (managerIds.contains(employeeId)) { // Если ID менеджера уже существует
+                if (managerNames.contains(managerName)) {
+                    duplicates.add(employeeId); // Добавляем ID в множество дубликатов
+                    logger.logError(line); // Записываем строку в лог
+                } else {
+                    managerNames.add(managerName); // Добавляем имя менеджера в множество
                 }
             }
         }
+
         // Удаляем дублирующиеся строки из validLines
         validLines.removeIf(line -> duplicates.contains(extractEmployeeId(line)));
     }
 
-
     String extractEmployeeId(String line) {
-        String[] parts = splitLine(line);
-        return parts[1].trim(); // Идентификатор — это второе значение в строке
+        String[] parts = splitLine(line); // Используем новый метод
+        return parts[1]; // Идентификатор — это второе значение в строке
     }
 
     public boolean hasEnoughData(String line) {
-        String[] parts = splitLine(line);
+        String[] parts = splitLine(line); // Используем новый метод
         if (parts.length < 5) {
             logger.logError(line);
             return false; // Недостаточно данных

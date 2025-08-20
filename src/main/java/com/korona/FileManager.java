@@ -37,7 +37,6 @@ public class FileManager {
             // Создаем новый файл, если он не существует
             if (!file.exists()) {
                 file.createNewFile();
-//                System.out.println("File created: " + file.getName());
                 return true; // Файл создан
             } else {
                 // Если файл существует, очищаем его содержимое
