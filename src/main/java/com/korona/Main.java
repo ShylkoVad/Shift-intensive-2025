@@ -30,7 +30,7 @@ public class Main {
         // Вывод содержимого вновь созданных файлов
         for (String fileName : createdFiles) {
             File newFile = new File(fileName); // Создаем объект File для нового файла
-            System.out.println("Contents of file: " + newFile.getName());
+            System.out.println(newFile.getName());
             processor.fileHandler.printFileContents(newFile); // Выводим содержимое файла
             System.out.println(); // Пустая строка для разделения выводов
         }
