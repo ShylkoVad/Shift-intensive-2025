@@ -48,8 +48,14 @@ public class CustomFileHandler {
             }
         }
 
-        // Проверяем строки на корректность зарплаты
+        // Проверяем строки на корректность
         for (String line : allLines) {
+            if (!employeeDataValidator.hasEnoughData(line)) {
+                // Если данных недостаточно, логируем ошибку и пропускаем строку
+                continue; // Переходим к следующей строке
+            }
+
+            // Проверяем строки на корректность зарплаты
             if (employeeDataValidator.isSalaryValid(line)) {
                 validLines.add(line); // Если зарплата корректна, добавляем строку в validLines
             }

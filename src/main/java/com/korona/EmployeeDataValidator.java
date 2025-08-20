@@ -14,14 +14,13 @@ public class EmployeeDataValidator {
         this.logger = ErrorLogger.getInstance("error.log");
     }
 
-    public boolean isSalaryValid(String line) {
-        String[] parts = line.split(",");
-        if (parts.length < 5) {
-            logger.logError("Not enough data: " + line);
-            return false; // Недостаточно данных
-        }
+    private String[] splitLine(String line) {
+        return line.split(","); // Метод для разбиения строки
+    }
 
-        String salaryStr = parts[3].trim();
+    public boolean isSalaryValid(String line) {
+        String[] parts = splitLine(line);
+        String salaryStr = parts[3].trim(); // Идентификатор — это четвертое значение в строке
         double salary;
         try {
             if (salaryStr.isEmpty()) {
@@ -66,7 +65,16 @@ public class EmployeeDataValidator {
 
 
     String extractEmployeeId(String line) {
-        String[] parts = line.split(",");
-        return parts[1].trim(); // Предположим, идентификатор — это второе значение в строке
+        String[] parts = splitLine(line);
+        return parts[1].trim(); // Идентификатор — это второе значение в строке
+    }
+
+    public boolean hasEnoughData(String line) {
+        String[] parts = splitLine(line);
+        if (parts.length < 5) {
+            logger.logError(line);
+            return false; // Недостаточно данных
+        }
+        return true; // Данные достаточны
     }
 }
