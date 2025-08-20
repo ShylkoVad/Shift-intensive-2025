@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 
 public class CustomFileHandler {
 
+    // Метод для поиска файлов с расширением .sb
     public List<File> getSbFiles() {
         File dir = new File(".");
         return Arrays.stream(dir.listFiles())
@@ -79,15 +81,17 @@ public class CustomFileHandler {
             throws InvalidEmployeeDataException {
         FileManager fileManager = new FileManager();
 
-        // Сначала создаем менеджеров и соответствующие департаменты
-        createManagers(lines, departments, managerIds, fileManager);
+        // Создаем менеджеров и соответствующие департаменты
+        Map<String, Manager> managers = createManagers(lines, departments, managerIds, fileManager);
 
         // Теперь добавляем сотрудников
-        addEmployees(lines, departments, employeeIds, fileManager);
+        addEmployees(lines, departments, managers, employeeIds, fileManager);
     }
 
-    private void createManagers(List<String> lines, Map<String, Department> departments, Set<String> managerIds, FileManager fileManager)
+    private Map<String, Manager> createManagers(List<String> lines, Map<String, Department> departments, Set<String> managerIds, FileManager fileManager)
             throws InvalidEmployeeDataException {
+        Map<String, Manager> managers = new HashMap<>(); // Создаем новую карту для хранения менеджеров
+
         for (String line : lines) {
             String[] parts = line.split(",");
             if (parts.length < 5) {
@@ -108,6 +112,11 @@ public class CustomFileHandler {
                 throw new InvalidEmployeeDataException("Duplicate manager ID: " + id);
             }
 
+            // Проверка на корректный ID департамента
+            if (departmentManagerID == null || departmentManagerID.isEmpty()) {
+                throw new InvalidEmployeeDataException("Department Manager ID is null or empty: " + line);
+            }
+
             // Создаем или получаем департамент
             Department department = departments.computeIfAbsent(departmentManagerID, k -> new Department(departmentManagerID));
             if (department.getManager() != null) {
@@ -116,14 +125,17 @@ public class CustomFileHandler {
 
             Manager manager = new Manager(id, name, Double.parseDouble(salaryStr), departmentManagerID);
             department.setManager(manager);
+            managers.put(id, manager); // Добавляем менеджера в карту
             managerIds.add(id);
 
             // Создаем файл с именем departmentManagerID и записываем менеджера
             fileManager.createDepartmentFile(departmentManagerID, List.of(manager.toString()));
         }
+
+        return managers; // Возвращаем карту менеджеров
     }
 
-    private void addEmployees(List<String> lines, Map<String, Department> departments, Set<String> employeeIds, FileManager fileManager) {
+    private void addEmployees(List<String> lines, Map<String, Department> departments, Map<String, Manager> managers, Set<String> employeeIds, FileManager fileManager) {
         for (String line : lines) {
             String[] parts = line.split(",");
             if (parts.length < 5) {
@@ -139,7 +151,7 @@ public class CustomFileHandler {
             String id = parts[1].trim();
             String name = parts[2].trim();
             String salaryStr = parts[3].trim();
-            String departmentManagerID = parts[4].trim();
+            String managerId = parts[4].trim();
 
             if (employeeIds.contains(id)) {
                 logError("Duplicate employee ID: " + id);
@@ -149,6 +161,10 @@ public class CustomFileHandler {
             // Проверка зарплаты
             double salary;
             try {
+                if (salaryStr.isEmpty()) {
+                    logError("Invalid salary for employee (empty value): " + line);
+                    continue; // Пропускаем строку с пустой зарплатой
+                }
                 salary = Double.parseDouble(salaryStr);
                 if (salary < 0) {
                     logError("Invalid salary for employee (negative value): " + line);
@@ -160,11 +176,25 @@ public class CustomFileHandler {
             }
 
             // Создаем объект Employee
-            Employee employee = new Employee(id, name, salary, departmentManagerID);
+            Employee employee = new Employee(id, name, salary, managerId);
 
-            // Записываем данные сотрудника в файл
-            fileManager.appendEmployeeToDepartmentFile(departmentManagerID, employee.toString());
-            employeeIds.add(id); // Добавляем ID сотрудника в множество
+            // Проверяем, существует ли менеджер с данным ID
+            Manager manager = managers.get(managerId);
+            if (manager != null) {
+                String departmentId = manager.getDepartmentId(); // Получаем ID департамента менеджера
+                Department department = departments.get(departmentId); // Ищем департамент по ID
+
+                if (department != null) {
+                    String departmentName = department.getName(); // Получаем название департамента
+                    // Записываем данные сотрудника в файл
+                    fileManager.appendEmployeeToDepartmentFile(departmentName, employee.toString());
+                    employeeIds.add(id); // Добавляем ID сотрудника в множество
+                } else {
+                    logError("Department not found for manager ID: " + managerId);
+                }
+            } else {
+                logError("Manager not found for employee: " + line);
+            }
         }
     }
 
