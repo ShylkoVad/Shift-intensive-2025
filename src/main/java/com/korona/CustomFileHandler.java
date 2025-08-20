@@ -55,6 +55,9 @@ public class CustomFileHandler {
             }
         }
 
+        // Проверяем на дубликаты идентификаторов в validLines и записываем дубликаты в лог
+        employeeDataValidator.checkForDuplicateIds(validLines, employeeIds, managerIds, validLines);
+
         // Обрабатываем все строки из validLines
         try {
             parseLine(validLines, departments, employeeIds, managerIds);
@@ -189,10 +192,10 @@ public class CustomFileHandler {
             String salaryStr = parts[3].trim();
             String managerId = parts[4].trim();
 
-            if (employeeIds.contains(id)) {
-                logger.logError("Duplicate employee ID: " + id);
-                continue; // Пропускаем дублирующийся ID
-            }
+//            if (employeeIds.contains(id)) {
+//                logger.logError("Duplicate employee ID: " + id);
+//                continue; // Пропускаем дублирующийся ID
+//            }
 
             // Создаем объект Employee
             Employee employee = new Employee(id, name, Double.parseDouble(salaryStr), managerId);
