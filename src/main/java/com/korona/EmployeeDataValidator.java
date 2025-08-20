@@ -1,7 +1,7 @@
 package com.korona;
 
 public class EmployeeDataValidator {
-    private ErrorLogger logger;
+    private final ErrorLogger logger;
 
     public EmployeeDataValidator() {
         this.logger = ErrorLogger.getInstance("error.log");
@@ -18,16 +18,16 @@ public class EmployeeDataValidator {
         double salary;
         try {
             if (salaryStr.isEmpty()) {
-                logger.logError("Invalid salary for employee (empty value): " + line);
+                logger.logError(line);
                 return false; // Пустая зарплата
             }
             salary = Double.parseDouble(salaryStr);
             if (salary < 0) {
-                logger.logError("Invalid salary for employee (negative value): " + line);
+                logger.logError(line);
                 return false; // Отрицательная зарплата
             }
         } catch (NumberFormatException e) {
-            logger.logError("Invalid salary for employee (not a number): " + line);
+            logger.logError(line);
             return false; // Некорректный формат зарплаты
         }
 
