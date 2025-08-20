@@ -15,7 +15,11 @@ public class EmployeeDataValidator {
     }
 
     private String[] splitLine(String line) {
-        return line.split(","); // Метод для разбиения строки
+        String[] parts = line.split(","); // Разбиваем строку
+        for (int i = 0; i < parts.length; i++) {
+            parts[i] = parts[i].trim(); // Удаляем пробелы в начале и в конце каждого элемента
+        }
+        return parts;
     }
 
     public boolean isSalaryValid(String line) {
