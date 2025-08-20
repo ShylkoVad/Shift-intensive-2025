@@ -83,6 +83,24 @@ public class CustomFileHandler {
         }
     }
 
+    public void printErrorLogContents() {
+        File errorLog = new File(Constants.ERROR_LOG);
+        if (!errorLog.exists()) {
+            System.out.println("Error log file does not exist.");
+            return;
+        }
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(errorLog))) {
+            String line;
+            System.out.println("error.log:");
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading error log: " + e.getMessage());
+        }
+    }
+
     public void parseLine(List<String> lines, Map<String, Department> departments, Set<String> employeeIds, Set<String> managerIds)
             throws InvalidEmployeeDataException {
         // Создаем менеджеров и соответствующие департаменты

@@ -34,6 +34,9 @@ public class Main {
             processor.fileHandler.printFileContents(newFile); // Выводим содержимое файла
             System.out.println(); // Пустая строка для разделения выводов
         }
+
+        // Вывод содержимого error.log
+        processor.fileHandler.printErrorLogContents();
     }
 
     private Map<String, String> parseArgs(String[] args) {
