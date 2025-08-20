@@ -5,13 +5,17 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
 
 public class FileManager {
 
+    private List<String> createdFiles = new ArrayList<>();
+
     public void createDepartmentFile(String departmentManagerID, List<String> managers) {
-        File file = new File(departmentManagerID + ".sb"); // Создаем файл с расширением .sb
+        File file = new File(departmentManagerID + ".sb");
         if (createOrClearFile(file)) {
+            createdFiles.add(file.getName()); // Добавляем имя файла в список созданных файлов
             // Записываем менеджеров в файл
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
                 for (String manager : managers) {
@@ -24,12 +28,16 @@ public class FileManager {
         }
     }
 
+    public List<String> getCreatedFiles() {
+        return createdFiles; // Метод для получения списка созданных файлов
+    }
+
     private boolean createOrClearFile(File file) {
         try {
             // Создаем новый файл, если он не существует
             if (!file.exists()) {
                 file.createNewFile();
-                System.out.println("File created: " + file.getName());
+//                System.out.println("File created: " + file.getName());
                 return true; // Файл создан
             } else {
                 // Если файл существует, очищаем его содержимое

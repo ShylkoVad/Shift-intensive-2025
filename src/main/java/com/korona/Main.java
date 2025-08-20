@@ -21,19 +21,19 @@ public class Main {
         // Очистка файла error.log в начале программы
         processor.fileManager.clearErrorLog();
 
-        // Получаем список файлов
+        // Получаем список файлов .sb для обработки
         List<File> sbFiles = processor.fileHandler.getSbFiles();
 
-        // Обработка файлов
-        processor.fileHandler.processFiles(sbFiles, processor.departments); // Изменение здесь
+        // Обработка файлов и получение списка созданных файлов
+        List<String> createdFiles = processor.fileHandler.processFiles(sbFiles, processor.departments);
 
-//        // Генерация выходных файлов
-//        processor.generateOutputFiles(params);
-//
-//        // Вывод содержимого всех файлов на экран
-//        processor.fileHandler.printAllFilesContents(sbFiles); // Передаем список файлов
-
-
+        // Вывод содержимого вновь созданных файлов
+        for (String fileName : createdFiles) {
+            File newFile = new File(fileName); // Создаем объект File для нового файла
+            System.out.println("Contents of file: " + newFile.getName());
+            processor.fileHandler.printFileContents(newFile); // Выводим содержимое файла
+            System.out.println(); // Пустая строка для разделения выводов
+        }
     }
 
     private Map<String, String> parseArgs(String[] args) {

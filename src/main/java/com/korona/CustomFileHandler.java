@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class CustomFileHandler {
+    FileManager fileManager = new FileManager();
     EmployeeDataValidator employeeDataValidator = new EmployeeDataValidator();
     private final ErrorLogger logger;
 
@@ -29,7 +30,7 @@ public class CustomFileHandler {
                 .collect(Collectors.toList());
     }
 
-    public void processFiles(List<File> files, Map<String, Department> departments) {
+    public List<String> processFiles(List<File> files, Map<String, Department> departments) {
         Set<String> employeeIds = new HashSet<>(); // Создаем множество для employee IDs
         Set<String> managerIds = new HashSet<>(); // Создаем множество для manager IDs
         List<String> allLines = new ArrayList<>(); // Список для хранения всех строк из всех файлов
@@ -61,45 +62,37 @@ public class CustomFileHandler {
             throw new RuntimeException(e);
         }
 
-        // Выводим содержимое всех строк на экран
-        System.out.println("Contents of all files:");
-        for (String line : validLines) {
-            System.out.println(line);
-        }
+//        // Выводим содержимое всех строк на экран
+//        System.out.println("Contents of all files:");
+//        for (String line : validLines) {
+//            System.out.println(line);
+//        }
+
+        // Возвращаем список созданных файлов
+        return fileManager.getCreatedFiles();
     }
 
     public void printFileContents(File file) {
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
-            while ((line = br.readLine()) != null) {
+            while ((line = reader.readLine()) != null) {
                 System.out.println(line);
             }
         } catch (IOException e) {
-            logger.logError("Error reading file " + file.getName() + ": " + e.getMessage()); // Убрали второй аргумент
-        }
-    }
-
-    public void printAllFilesContents(List<File> files) {
-        for (File file : files) {
-            System.out.println("Contents of file: " + file.getName());
-            printFileContents(file);
-            System.out.println(); // Пустая строка для разделения выводов разных файлов
+            System.err.println("Error reading file: " + e.getMessage());
         }
     }
 
     public void parseLine(List<String> lines, Map<String, Department> departments, Set<String> employeeIds, Set<String> managerIds)
             throws InvalidEmployeeDataException {
-        FileManager fileManager = new FileManager();
-
         // Создаем менеджеров и соответствующие департаменты
-        Map<String, Manager> managers = createManagers(lines, departments, managerIds, fileManager);
+        Map<String, Manager> managers = createManagers(lines, departments, managerIds);
 
         // Теперь добавляем сотрудников
-        addEmployees(lines, departments, managers, employeeIds, fileManager);
+        addEmployees(lines, departments, managers, employeeIds);
     }
 
-    private Map<String, Manager> createManagers(List<String> lines, Map<String, Department> departments, Set<String> managerIds, FileManager fileManager)
-            throws InvalidEmployeeDataException {
+    private Map<String, Manager> createManagers(List<String> lines, Map<String, Department> departments, Set<String> managerIds) throws InvalidEmployeeDataException {
         Map<String, Manager> managers = new HashMap<>(); // Создаем новую карту для хранения менеджеров
 
         for (String line : lines) {
@@ -143,7 +136,7 @@ public class CustomFileHandler {
         return managers; // Возвращаем карту менеджеров
     }
 
-    private void addEmployees(List<String> lines, Map<String, Department> departments, Map<String, Manager> managers, Set<String> employeeIds, FileManager fileManager) {
+    private void addEmployees(List<String> lines, Map<String, Department> departments, Map<String, Manager> managers, Set<String> employeeIds) {
         for (String line : lines) {
             String[] parts = line.split(",");
             if (parts.length < 5) {
@@ -172,12 +165,10 @@ public class CustomFileHandler {
             // Проверяем, существует ли менеджер
             Manager manager = managers.get(managerId);
             if (manager != null) {
-                System.out.println("Manager found: " + manager.getName());
                 String departmentName = manager.getDepartmentId(); // Получаем название департамента менеджера
 
                 // Проверяем, существует ли департамент
                 if (departments.containsKey(departmentName)) {
-                    System.out.println("Department found: " + departmentName);
                     // Записываем данные сотрудника в файл
                     fileManager.appendEmployeeToDepartmentFile(departmentName, employee.toString());
                     employeeIds.add(id); // Добавляем ID сотрудника в множество
@@ -190,7 +181,7 @@ public class CustomFileHandler {
         }
     }
 
-    public class InvalidEmployeeDataException extends Exception {
+    public static class InvalidEmployeeDataException extends Exception {
         public InvalidEmployeeDataException(String message) {
             super(message);
         }
