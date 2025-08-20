@@ -76,7 +76,7 @@ public class CustomFileHandler {
     }
 
     public void parseLine(List<String> lines, Map<String, Department> departments, Set<String> employeeIds, Set<String> managerIds)
-            throws InvalidEmployeeDataException, InvalidEmployeeDataException {
+            throws InvalidEmployeeDataException {
         FileManager fileManager = new FileManager();
 
         // Сначала создаем менеджеров и соответствующие департаменты
@@ -87,7 +87,7 @@ public class CustomFileHandler {
     }
 
     private void createManagers(List<String> lines, Map<String, Department> departments, Set<String> managerIds, FileManager fileManager)
-            throws InvalidEmployeeDataException, InvalidEmployeeDataException {
+            throws InvalidEmployeeDataException {
         for (String line : lines) {
             String[] parts = line.split(",");
             if (parts.length < 5) {
