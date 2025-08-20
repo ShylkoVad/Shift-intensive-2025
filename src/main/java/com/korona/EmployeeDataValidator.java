@@ -14,36 +14,35 @@ public class EmployeeDataValidator {
         this.logger = ErrorLogger.getInstance("error.log");
     }
 
-    private String[] splitLine(String line) {
-        String[] parts = line.split(","); // Разбиваем строку
-        for (int i = 0; i < parts.length; i++) {
-            parts[i] = parts[i].trim(); // Удаляем пробелы в начале и в конце каждого элемента
+    private List<String> splitLine(String line) {
+        String[] parts = line.split(",");
+        List<String> trimmedParts = new ArrayList<>();
+        for (String part : parts) {
+            trimmedParts.add(part.trim());
         }
-        return parts;
+        return trimmedParts;
     }
 
     // Метод для проверки наличия достаточного количества данных
     public boolean hasEnoughData(String line) {
-        String[] parts = splitLine(line);
-        if (parts.length < 5) {
+        List<String> parts = splitLine(line);
+        if (parts.size() < 5) {
             logger.logError(line);
             return false; // Недостаточно данных
         }
         return true; // Данные достаточны
     }
+
     // Метод для проверки дубликатов департаментов у менеджеров
     public void validateManagersByDepartment(List<String> validLines) {
         Map<String, List<String>> departmentMap = new HashMap<>(); // Для хранения строк по департаментам
         List<String> finalValidLines = new ArrayList<>(); // Для хранения окончательных валидных строк
 
         for (String line : validLines) {
-            String[] parts = line.split(",");
-            if (parts.length < 5) {
-                continue; // Пропускаем строки с недостаточными данными
-            }
+            List<String> parts = splitLine(line);
 
-            String type = parts[0].trim();
-            String departmentManagerID = parts[4].trim(); // ID департамента
+            String type = parts.get(0);
+            String departmentManagerID = parts.get(4);
 
             if (type.equals("Manager")) {
                 // Добавляем строку в соответствующий департамент
@@ -54,8 +53,7 @@ public class EmployeeDataValidator {
         }
 
         // Обрабатываем дублирующиеся записи
-        for (Map.Entry<String, List<String>> entry : departmentMap.entrySet()) {
-            List<String> entries = entry.getValue();
+        for (List<String> entries : departmentMap.values()) {
             if (entries.size() > 1) {
                 // Если есть дубликаты, записываем все записи в журнал ошибок
                 for (String duplicateEntry : entries) {
@@ -72,11 +70,10 @@ public class EmployeeDataValidator {
         validLines.addAll(finalValidLines);
     }
 
-
     // Метод для проверки валидности зарплаты
     public boolean isSalaryValid(String line) {
-        String[] parts = splitLine(line);
-        String salaryStr = parts[3]; // Идентификатор — это четвертое значение в строке
+        List<String> parts = splitLine(line);
+        String salaryStr = parts.get(3); // Идентификатор — это четвертое значение в строке
         double salary;
         try {
             if (salaryStr.isEmpty()) {
@@ -103,31 +100,23 @@ public class EmployeeDataValidator {
         Set<String> managerNames = new HashSet<>(); // Множество для хранения имен менеджеров
 
         for (String line : lines) {
-            String[] parts = splitLine(line);
-            String employeeId = parts[1]; // Предполагаем, что ID — это второе значение
-            String managerName = parts[2]; // Предполагаем, что имя менеджера — это третье значение
+            List<String> parts = splitLine(line);
+            String employeeId = parts.get(1);
+            String managerName = parts.get(2);
 
-            // Проверяем дубликаты по ID
-            idToLinesMap.putIfAbsent(employeeId, new ArrayList<>()); // Инициализируем список строк для данного ID
-            idToLinesMap.get(employeeId).add(line); // Добавляем строку в список строк для данного ID
+            idToLinesMap.computeIfAbsent(employeeId, k -> new ArrayList<>()).add(line);
 
-            // Проверка на дубликаты имен менеджеров
-            if (managerIds.contains(employeeId)) { // Если ID менеджера уже существует
-                if (managerNames.contains(managerName)) {
-                    duplicates.add(employeeId); // Добавляем ID в множество дубликатов
-                    logger.logError(line); // Записываем строку в лог
-                } else {
-                    managerNames.add(managerName); // Добавляем имя менеджера в множество
-                }
+            if (managerIds.contains(employeeId) && !managerNames.add(managerName)) {
+                duplicates.add(employeeId);
+                logger.logError(line);
             }
         }
 
-        // Удаляем дублирующиеся строки из validLines
         validLines.removeIf(line -> duplicates.contains(extractEmployeeId(line)));
     }
 
     String extractEmployeeId(String line) {
-        String[] parts = splitLine(line);
-        return parts[1]; // Идентификатор — это второе значение в строке
+        List<String> parts = splitLine(line);
+        return parts.get(1); // Идентификатор — это второе значение в строке
     }
 }
