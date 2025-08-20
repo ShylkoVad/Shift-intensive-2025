@@ -6,16 +6,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class EmployeeDataProcessor {
+public class Main {
     private Map<String, Department> departments = new HashMap<>();
     private CustomFileHandler fileHandler = new CustomFileHandler();
     private FileManager fileManager = new FileManager();
 
-    public EmployeeDataProcessor() throws IOException {
+    public Main() throws IOException {
     }
 
     public static void main(String[] args) throws IOException {
-        EmployeeDataProcessor processor = new EmployeeDataProcessor();
+        Main processor = new Main();
         Map<String, String> params = processor.parseArgs(args);
 
         // Очистка файла error.log в начале программы
