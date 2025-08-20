@@ -1,0 +1,4 @@
+Invalid salary for employee (not a number): Employee,102,Emily Johnson,abc,1
+Duplicate employee ID: 103
+Duplicate employee ID: 104
+Invalid salary for employee (empty value): Employee,105,Robert Black,,2

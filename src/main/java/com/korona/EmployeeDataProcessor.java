@@ -25,15 +25,15 @@ public class EmployeeDataProcessor {
         List<File> sbFiles = processor.fileHandler.getSbFiles();
 
         // Обработка файлов
-        for (File file : sbFiles) {
-            processor.fileHandler.processFile(file, processor.departments);
-        }
+        processor.fileHandler.processFiles(sbFiles, processor.departments); // Изменение здесь
 
-        // Генерация выходных файлов
-        processor.generateOutputFiles(params);
+//        // Генерация выходных файлов
+//        processor.generateOutputFiles(params);
+//
+//        // Вывод содержимого всех файлов на экран
+//        processor.fileHandler.printAllFilesContents(sbFiles); // Передаем список файлов
 
-        // Вывод содержимого всех файлов на экран
-        processor.fileHandler.printAllFilesContents(sbFiles); // Передаем список файлов
+
     }
 
     private Map<String, String> parseArgs(String[] args) {
@@ -53,6 +53,4 @@ public class EmployeeDataProcessor {
         // Реализуйте логику для генерации выходных файлов и статистики
         // Сортировка и вывод в зависимости от параметров
     }
-
-
 }

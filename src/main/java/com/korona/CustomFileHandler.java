@@ -26,25 +26,34 @@ public class CustomFileHandler {
                 .collect(Collectors.toList());
     }
 
-    public void processFile(File file, Map<String, Department> departments) {
+    public void processFiles(List<File> files, Map<String, Department> departments) {
         Set<String> employeeIds = new HashSet<>(); // Создаем множество для employee IDs
         Set<String> managerIds = new HashSet<>(); // Создаем множество для manager IDs
+        List<String> allLines = new ArrayList<>(); // Список для хранения всех строк из всех файлов
 
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            String line;
-            List<String> lines = new ArrayList<>(); // Список для хранения строк файла
-
-            // Читаем все строки файла и добавляем их в список
-            while ((line = br.readLine()) != null) {
-                lines.add(line);
+        // Читаем строки из всех файлов и добавляем их в общий список
+        for (File file : files) {
+            try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    allLines.add(line);
+                }
+            } catch (IOException e) {
+                System.err.println("Error reading file: " + file.getName() + " - " + e.getMessage());
             }
+        }
 
-            // Обрабатываем все строки
-            parseLine(lines, departments, employeeIds, managerIds);
-        } catch (IOException e) {
-            System.err.println("Error reading file: " + file.getName() + " - " + e.getMessage());
+        // Обрабатываем все строки из общего списка
+        try {
+            parseLine(allLines, departments, employeeIds, managerIds);
         } catch (InvalidEmployeeDataException e) {
             throw new RuntimeException(e);
+        }
+
+        // Выводим содержимое всех строк на экран
+        System.out.println("Contents of all files:");
+        for (String line : allLines) {
+            System.out.println(line);
         }
     }
 
@@ -95,7 +104,8 @@ public class CustomFileHandler {
         for (String line : lines) {
             String[] parts = line.split(",");
             if (parts.length < 5) {
-                throw new InvalidEmployeeDataException("Not enough data: " + line);
+                logError("Not enough data: " + line);
+                continue; // Пропустить строку с недостаточными данными
             }
 
             String type = parts[0].trim();
@@ -108,13 +118,10 @@ public class CustomFileHandler {
             String salaryStr = parts[3].trim();
             String departmentManagerID = parts[4].trim();
 
-            if (managerIds.contains(id)) {
-                throw new InvalidEmployeeDataException("Duplicate manager ID: " + id);
-            }
-
             // Проверка на корректный ID департамента
             if (departmentManagerID == null || departmentManagerID.isEmpty()) {
-                throw new InvalidEmployeeDataException("Department Manager ID is null or empty: " + line);
+                logError("Department Manager ID is null or empty: " + line);
+                continue; // Пропускаем строку с пустым ID департамента
             }
 
             // Создаем или получаем департамент
