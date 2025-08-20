@@ -36,7 +36,7 @@ public class CustomFileHandler {
         List<String> allLines = new ArrayList<>(); // Список для хранения всех строк из всех файлов
         List<String> validLines = new ArrayList<>(); // Список для хранения строк с корректными данными
 
-        // Читаем строки из всех файлов и добавляем их в общий список
+        // Читаем строки из всех файлов
         for (File file : files) {
             try (BufferedReader br = new BufferedReader(new FileReader(file))) {
                 String line;
@@ -61,25 +61,23 @@ public class CustomFileHandler {
             }
         }
 
+        // Проверяем на дублирующихся менеджеров по департаментам
+        employeeDataValidator.validateManagersByDepartment(validLines);
+
         // Проверяем на дубликаты идентификаторов в validLines и записываем дубликаты в лог
         employeeDataValidator.checkForDuplicateIds(validLines, employeeIds, managerIds, validLines);
 
-        // Обрабатываем все строки из validLines
+        // Обрабатываем строки из validLines
         try {
             parseLine(validLines, departments, employeeIds, managerIds);
         } catch (InvalidEmployeeDataException e) {
             throw new RuntimeException(e);
         }
 
-//        // Выводим содержимое всех строк на экран
-//        System.out.println("Contents of all files:");
-//        for (String line : validLines) {
-//            System.out.println(line);
-//        }
-
         // Возвращаем список созданных файлов
         return fileManager.getCreatedFiles();
     }
+
 
     public void printFileContents(File file) {
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
@@ -156,17 +154,15 @@ public class CustomFileHandler {
             String salaryStr = parts[3].trim();
             String departmentManagerID = parts[4].trim();
 
-            // Проверка на корректный ID департамента
-            if (departmentManagerID == null || departmentManagerID.isEmpty()) {
-                logger.logError("Department Manager ID is null or empty: " + line);
-                continue; // Пропускаем строку с пустым ID департамента
-            }
-
             // Создаем или получаем департамент
             Department department = departments.computeIfAbsent(departmentManagerID, k -> new Department(departmentManagerID));
-            if (department.getManager() != null) {
-                throw new InvalidEmployeeDataException("Department already has a manager: " + departmentManagerID);
-            }
+
+//            // Проверяем, существует ли уже менеджер в департаменте
+//            if (department.getManager() != null) {
+//                // Логируем информацию о существующем менеджере
+//                logger.logError("Department already has a manager: " + departmentManagerID);
+//                continue; // Пропускаем добавление менеджера
+//            }
 
             Manager manager = new Manager(id, name, Double.parseDouble(salaryStr), departmentManagerID);
             department.setManager(manager);
@@ -197,11 +193,6 @@ public class CustomFileHandler {
             String name = parts[2].trim();
             String salaryStr = parts[3].trim();
             String managerId = parts[4].trim();
-
-//            if (employeeIds.contains(id)) {
-//                logger.logError("Duplicate employee ID: " + id);
-//                continue; // Пропускаем дублирующийся ID
-//            }
 
             // Создаем объект Employee
             Employee employee = new Employee(id, name, Double.parseDouble(salaryStr), managerId);

@@ -22,6 +22,58 @@ public class EmployeeDataValidator {
         return parts;
     }
 
+    // Метод для проверки наличия достаточного количества данных
+    public boolean hasEnoughData(String line) {
+        String[] parts = splitLine(line);
+        if (parts.length < 5) {
+            logger.logError(line);
+            return false; // Недостаточно данных
+        }
+        return true; // Данные достаточны
+    }
+    // Метод для проверки дубликатов департаментов у менеджеров
+    public void validateManagersByDepartment(List<String> validLines) {
+        Map<String, List<String>> departmentMap = new HashMap<>(); // Для хранения строк по департаментам
+        List<String> finalValidLines = new ArrayList<>(); // Для хранения окончательных валидных строк
+
+        for (String line : validLines) {
+            String[] parts = line.split(",");
+            if (parts.length < 5) {
+                continue; // Пропускаем строки с недостаточными данными
+            }
+
+            String type = parts[0].trim();
+            String departmentManagerID = parts[4].trim(); // ID департамента
+
+            if (type.equals("Manager")) {
+                // Добавляем строку в соответствующий департамент
+                departmentMap.computeIfAbsent(departmentManagerID, k -> new ArrayList<>()).add(line);
+            } else {
+                finalValidLines.add(line); // Добавляем в окончательные валидные строки, если это не менеджер
+            }
+        }
+
+        // Обрабатываем дублирующиеся записи
+        for (Map.Entry<String, List<String>> entry : departmentMap.entrySet()) {
+            List<String> entries = entry.getValue();
+            if (entries.size() > 1) {
+                // Если есть дубликаты, записываем все записи в журнал ошибок
+                for (String duplicateEntry : entries) {
+                    logger.logError(duplicateEntry);
+                }
+            } else {
+                // Если это уникальная запись, добавляем в окончательные валидные строки
+                finalValidLines.add(entries.get(0));
+            }
+        }
+
+        // Обновляем validLines с окончательными валидными строками
+        validLines.clear();
+        validLines.addAll(finalValidLines);
+    }
+
+
+    // Метод для проверки валидности зарплаты
     public boolean isSalaryValid(String line) {
         String[] parts = splitLine(line);
         String salaryStr = parts[3]; // Идентификатор — это четвертое значение в строке
@@ -44,6 +96,7 @@ public class EmployeeDataValidator {
         return true; // Зарплата корректна
     }
 
+    // Метод для проверки на дубликаты идентификаторов
     public void checkForDuplicateIds(List<String> lines, Set<String> employeeIds, Set<String> managerIds, List<String> validLines) {
         Map<String, List<String>> idToLinesMap = new HashMap<>(); // Словарь для хранения строк по идентификаторам
         Set<String> duplicates = new HashSet<>(); // Множество для хранения дублирующихся идентификаторов
@@ -74,16 +127,7 @@ public class EmployeeDataValidator {
     }
 
     String extractEmployeeId(String line) {
-        String[] parts = splitLine(line); // Используем новый метод
+        String[] parts = splitLine(line);
         return parts[1]; // Идентификатор — это второе значение в строке
-    }
-
-    public boolean hasEnoughData(String line) {
-        String[] parts = splitLine(line); // Используем новый метод
-        if (parts.length < 5) {
-            logger.logError(line);
-            return false; // Недостаточно данных
-        }
-        return true; // Данные достаточны
     }
 }

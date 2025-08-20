@@ -41,7 +41,6 @@ public class FileManager {
             } else {
                 // Если файл существует, очищаем его содержимое
                 try (PrintWriter writer = new PrintWriter(new FileWriter(file, false))) {
-                    System.out.println("File exists. Contents will be overwritten: " + file.getName());
                 }
                 return true; // Файл очищен
             }
