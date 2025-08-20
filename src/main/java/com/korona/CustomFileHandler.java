@@ -1,12 +1,9 @@
 package com.korona;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -17,6 +14,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class CustomFileHandler {
+    EmployeeDataValidator employeeDataValidator = new EmployeeDataValidator();
+    private final ErrorLogger logger;
+
+    public CustomFileHandler() {
+        this.logger = ErrorLogger.getInstance("error.log");
+    }
 
     // Метод для поиска файлов с расширением .sb
     public List<File> getSbFiles() {
@@ -30,6 +33,7 @@ public class CustomFileHandler {
         Set<String> employeeIds = new HashSet<>(); // Создаем множество для employee IDs
         Set<String> managerIds = new HashSet<>(); // Создаем множество для manager IDs
         List<String> allLines = new ArrayList<>(); // Список для хранения всех строк из всех файлов
+        List<String> validLines = new ArrayList<>(); // Список для хранения строк с корректными данными
 
         // Читаем строки из всех файлов и добавляем их в общий список
         for (File file : files) {
@@ -43,27 +47,24 @@ public class CustomFileHandler {
             }
         }
 
-        // Обрабатываем все строки из общего списка
+        // Проверяем строки на корректность зарплаты
+        for (String line : allLines) {
+            if (employeeDataValidator.isSalaryValid(line)) {
+                validLines.add(line); // Если зарплата корректна, добавляем строку в validLines
+            }
+        }
+
+        // Обрабатываем все строки из validLines
         try {
-            parseLine(allLines, departments, employeeIds, managerIds);
+            parseLine(validLines, departments, employeeIds, managerIds);
         } catch (InvalidEmployeeDataException e) {
             throw new RuntimeException(e);
         }
 
         // Выводим содержимое всех строк на экран
         System.out.println("Contents of all files:");
-        for (String line : allLines) {
+        for (String line : validLines) {
             System.out.println(line);
-        }
-    }
-
-    public void logError(String message) {
-        try (FileWriter fw = new FileWriter("error.log", true); // true для добавления в конец файла
-             BufferedWriter bw = new BufferedWriter(fw);
-             PrintWriter out = new PrintWriter(bw)) {
-            out.println(message); // Записываем сообщение об ошибке
-        } catch (IOException e) {
-            System.err.println("Error writing to log file: " + e.getMessage());
         }
     }
 
@@ -74,7 +75,7 @@ public class CustomFileHandler {
                 System.out.println(line);
             }
         } catch (IOException e) {
-            logError("Error reading file " + file.getName() + ": " + e.getMessage()); // Убрали второй аргумент
+            logger.logError("Error reading file " + file.getName() + ": " + e.getMessage()); // Убрали второй аргумент
         }
     }
 
@@ -104,7 +105,7 @@ public class CustomFileHandler {
         for (String line : lines) {
             String[] parts = line.split(",");
             if (parts.length < 5) {
-                logError("Not enough data: " + line);
+                logger.logError("Not enough data: " + line);
                 continue; // Пропустить строку с недостаточными данными
             }
 
@@ -120,7 +121,7 @@ public class CustomFileHandler {
 
             // Проверка на корректный ID департамента
             if (departmentManagerID == null || departmentManagerID.isEmpty()) {
-                logError("Department Manager ID is null or empty: " + line);
+                logger.logError("Department Manager ID is null or empty: " + line);
                 continue; // Пропускаем строку с пустым ID департамента
             }
 
@@ -146,7 +147,7 @@ public class CustomFileHandler {
         for (String line : lines) {
             String[] parts = line.split(",");
             if (parts.length < 5) {
-                logError("Not enough data: " + line);
+                logger.logError("Not enough data: " + line);
                 continue; // Пропускаем строку с недостаточными данными
             }
 
@@ -161,29 +162,12 @@ public class CustomFileHandler {
             String managerId = parts[4].trim();
 
             if (employeeIds.contains(id)) {
-                logError("Duplicate employee ID: " + id);
+                logger.logError("Duplicate employee ID: " + id);
                 continue; // Пропускаем дублирующийся ID
             }
 
-            // Проверка зарплаты
-            double salary;
-            try {
-                if (salaryStr.isEmpty()) {
-                    logError("Invalid salary for employee (empty value): " + line);
-                    continue; // Пропускаем строку с пустой зарплатой
-                }
-                salary = Double.parseDouble(salaryStr);
-                if (salary < 0) {
-                    logError("Invalid salary for employee (negative value): " + line);
-                    continue; // Пропускаем строку с отрицательной зарплатой
-                }
-            } catch (NumberFormatException e) {
-                logError("Invalid salary for employee (not a number): " + line);
-                continue; // Пропускаем строку с некорректным форматом зарплаты
-            }
-
             // Создаем объект Employee
-            Employee employee = new Employee(id, name, salary, managerId);
+            Employee employee = new Employee(id, name, Double.parseDouble(salaryStr), managerId);
 
             // Проверяем, существует ли менеджер
             Manager manager = managers.get(managerId);
@@ -198,10 +182,10 @@ public class CustomFileHandler {
                     fileManager.appendEmployeeToDepartmentFile(departmentName, employee.toString());
                     employeeIds.add(id); // Добавляем ID сотрудника в множество
                 } else {
-                    logError("Department not found for department name: " + departmentName);
+                    logger.logError("Department not found for department name: " + departmentName);
                 }
             } else {
-                logError("Manager not found for employee: " + line);
+                logger.logError("Manager not found for employee: " + line);
             }
         }
     }
