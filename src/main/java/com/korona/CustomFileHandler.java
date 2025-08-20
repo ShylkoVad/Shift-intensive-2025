@@ -83,6 +83,23 @@ public class CustomFileHandler {
         }
     }
 
+    public List<String> processAndPrintFiles(List<File> sbFiles, Map<String, Department> departments) {
+        // Обработка файлов и получение списка созданных файлов
+        List<String> createdFiles = processFiles(sbFiles, departments);
+
+        // Вывод содержимого вновь созданных файлов
+        for (String fileName : createdFiles) {
+            File newFile = new File(fileName); // Создаем объект File для нового файла
+            System.out.println(newFile.getName());
+            printFileContents(newFile); // Выводим содержимое файла
+            System.out.println(); // Пустая строка для разделения выводов
+        }
+
+        printErrorLogContents(); // Вывод содержимого error.log
+
+        return createdFiles; // Возвращаем список созданных файлов
+    }
+
     public void printErrorLogContents() {
         File errorLog = new File(Constants.ERROR_LOG);
         if (!errorLog.exists()) {

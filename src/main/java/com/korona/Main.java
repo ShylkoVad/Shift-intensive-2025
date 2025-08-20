@@ -16,7 +16,6 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         Main processor = new Main();
-        Map<String, String> params = processor.parseArgs(args);
 
         // Очистка файла error.log в начале программы
         processor.fileManager.clearErrorLog();
@@ -24,19 +23,9 @@ public class Main {
         // Получаем список файлов .sb для обработки
         List<File> sbFiles = processor.fileHandler.getSbFiles();
 
-        // Обработка файлов и получение списка созданных файлов
-        List<String> createdFiles = processor.fileHandler.processFiles(sbFiles, processor.departments);
+        // Обрабатываем файлы и выводим их содержимое
+        processor.fileHandler.processAndPrintFiles(sbFiles, processor.departments);
 
-        // Вывод содержимого вновь созданных файлов
-        for (String fileName : createdFiles) {
-            File newFile = new File(fileName); // Создаем объект File для нового файла
-            System.out.println(newFile.getName());
-            processor.fileHandler.printFileContents(newFile); // Выводим содержимое файла
-            System.out.println(); // Пустая строка для разделения выводов
-        }
-
-        // Вывод содержимого error.log
-        processor.fileHandler.printErrorLogContents();
     }
 
     private Map<String, String> parseArgs(String[] args) {
