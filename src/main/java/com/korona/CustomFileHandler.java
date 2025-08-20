@@ -185,19 +185,20 @@ public class CustomFileHandler {
             // Создаем объект Employee
             Employee employee = new Employee(id, name, salary, managerId);
 
-            // Проверяем, существует ли менеджер с данным ID
+            // Проверяем, существует ли менеджер
             Manager manager = managers.get(managerId);
             if (manager != null) {
-                String departmentId = manager.getDepartmentId(); // Получаем ID департамента менеджера
-                Department department = departments.get(departmentId); // Ищем департамент по ID
+                System.out.println("Manager found: " + manager.getName());
+                String departmentName = manager.getDepartmentId(); // Получаем название департамента менеджера
 
-                if (department != null) {
-                    String departmentName = department.getName(); // Получаем название департамента
+                // Проверяем, существует ли департамент
+                if (departments.containsKey(departmentName)) {
+                    System.out.println("Department found: " + departmentName);
                     // Записываем данные сотрудника в файл
                     fileManager.appendEmployeeToDepartmentFile(departmentName, employee.toString());
                     employeeIds.add(id); // Добавляем ID сотрудника в множество
                 } else {
-                    logError("Department not found for manager ID: " + managerId);
+                    logError("Department not found for department name: " + departmentName);
                 }
             } else {
                 logError("Manager not found for employee: " + line);
