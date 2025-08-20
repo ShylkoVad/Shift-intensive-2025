@@ -11,28 +11,36 @@ public class FileManager {
 
     public void createDepartmentFile(String departmentManagerID, List<String> managers) {
         File file = new File(departmentManagerID + ".sb"); // Создаем файл с расширением .sb
-        try {
-            // Создаем новый файл, если он не существует
-            if (!file.exists()) {
-                file.createNewFile();
-                System.out.println("File created: " + file.getName());
-            } else {
-                // Если файл существует, очищаем его содержимое
-                try (PrintWriter writer = new PrintWriter(new FileWriter(file, false))) {
-                    // Очищаем файл, просто открыв его с параметром false
-                    System.out.println("File exists. Contents will be overwritten: " + file.getName());
-                }
-            }
-
+        if (createOrClearFile(file)) {
             // Записываем менеджеров в файл
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
                 for (String manager : managers) {
                     writer.write(manager);
                     writer.newLine();
                 }
+            } catch (IOException e) {
+                System.err.println("Error writing managers to file for department manager ID " + departmentManagerID + ": " + e.getMessage());
+            }
+        }
+    }
+
+    private boolean createOrClearFile(File file) {
+        try {
+            // Создаем новый файл, если он не существует
+            if (!file.exists()) {
+                file.createNewFile();
+                System.out.println("File created: " + file.getName());
+                return true; // Файл создан
+            } else {
+                // Если файл существует, очищаем его содержимое
+                try (PrintWriter writer = new PrintWriter(new FileWriter(file, false))) {
+                    System.out.println("File exists. Contents will be overwritten: " + file.getName());
+                }
+                return true; // Файл очищен
             }
         } catch (IOException e) {
-            System.err.println("Error creating file for department manager ID " + departmentManagerID + ": " + e.getMessage());
+            System.err.println("Error creating or clearing file: " + e.getMessage());
+            return false; // Ошибка при создании или очистке файла
         }
     }
 
@@ -43,12 +51,9 @@ public class FileManager {
             return; // Возвращаемся, если файл не существует
         }
 
-        try {
-            // Записываем employee в файл
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
-                writer.write(employeeData);
-                writer.newLine();
-            }
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
+            writer.write(employeeData);
+            writer.newLine();
         } catch (IOException e) {
             System.err.println("Error appending employee data for department manager ID " + departmentManagerID + ": " + e.getMessage());
         }
