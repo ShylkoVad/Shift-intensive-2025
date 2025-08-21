@@ -94,6 +94,9 @@ public class CustomFileHandler {
         // Обработка файлов и получение списка созданных файлов
         List<String> createdFiles = processFiles(sbFiles, departments);
 
+        // Сортируем созданные файлы по имени
+        createdFiles.sort(String::compareTo);
+
         // Вывод содержимого вновь созданных файлов
         for (String fileName : createdFiles) {
             File newFile = new File(fileName); // Создаем объект File для нового файла
@@ -106,6 +109,7 @@ public class CustomFileHandler {
 
         return createdFiles; // Возвращаем список созданных файлов
     }
+
 
     public void printErrorLogContents() {
         File errorLog = new File(Constants.ERROR_LOG);
