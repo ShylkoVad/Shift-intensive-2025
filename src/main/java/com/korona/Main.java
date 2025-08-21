@@ -42,9 +42,4 @@ public class Main {
         }
         return params;
     }
-
-    private void generateOutputFiles(Map<String, String> params) {
-        // Реализуйте логику для генерации выходных файлов и статистики
-        // Сортировка и вывод в зависимости от параметров
-    }
 }

@@ -78,7 +78,6 @@ public class CustomFileHandler {
         return fileManager.getCreatedFiles();
     }
 
-
     public void printFileContents(File file) {
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
@@ -109,7 +108,6 @@ public class CustomFileHandler {
 
         return createdFiles; // Возвращаем список созданных файлов
     }
-
 
     public void printErrorLogContents() {
         File errorLog = new File(Constants.ERROR_LOG);
@@ -160,13 +158,6 @@ public class CustomFileHandler {
 
             // Создаем или получаем департамент
             Department department = departments.computeIfAbsent(departmentManagerID, k -> new Department(departmentManagerID));
-
-//            // Проверяем, существует ли уже менеджер в департаменте
-//            if (department.getManager() != null) {
-//                // Логируем информацию о существующем менеджере
-//                logger.logError("Department already has a manager: " + departmentManagerID);
-//                continue; // Пропускаем добавление менеджера
-//            }
 
             Manager manager = new Manager(id, name, Double.parseDouble(salaryStr), departmentManagerID);
             department.setManager(manager);
