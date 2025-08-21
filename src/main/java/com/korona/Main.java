@@ -9,24 +9,21 @@ import java.util.Map;
 public class Main {
 
     //  java -jar F:\JAVA\ShylkoVad-shift-intensive-2025\out\artifacts\ShylkoVad_shift_intensive_2025_jar\ShylkoVad-shift-intensive-2025.jar
-    private Map<String, Department> departments = new HashMap<>();
-    private CustomFileHandler fileHandler = new CustomFileHandler();
-    private FileManager fileManager = new FileManager();
-
-    public Main() throws IOException {
-    }
 
     public static void main(String[] args) throws IOException {
-        Main processor = new Main();
+
+        FileManager fileManager = new FileManager();
+        CustomFileHandler fileHandler = new CustomFileHandler();
+        Map<String, Department> departments = new HashMap<>();
 
         // Очистка файла error.log в начале программы
-        processor.fileManager.clearErrorLog();
+        fileManager.clearErrorLog();
 
         // Получаем список файлов .sb для обработки
-        List<File> sbFiles = processor.fileHandler.getSbFiles();
+        List<File> sbFiles = fileHandler.getSbFiles();
 
         // Обрабатываем файлы и выводим их содержимое
-        processor.fileHandler.processAndPrintFiles(sbFiles, processor.departments);
+       fileHandler.processAndPrintFiles(sbFiles, departments);
 
     }
 
