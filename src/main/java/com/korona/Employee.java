@@ -16,7 +16,6 @@ public class Employee {
 
     @Override
     public String toString() {
-        return String.format("Employee,%s,%s,%s,%s", id, name, (salary % 1 == 0) ? String.format("%.0f", salary) : salary, managerId);
-
+        return String.format("Manager,%s, %s, %.0f, %s", id, name, salary, managerId);
     }
 }

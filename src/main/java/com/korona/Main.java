@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 
 public class Main {
+
+    //  java -jar F:\JAVA\ShylkoVad-shift-intensive-2025\out\artifacts\ShylkoVad_shift_intensive_2025_jar\ShylkoVad-shift-intensive-2025.jar
     private Map<String, Department> departments = new HashMap<>();
     private CustomFileHandler fileHandler = new CustomFileHandler();
     private FileManager fileManager = new FileManager();
