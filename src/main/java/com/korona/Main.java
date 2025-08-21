@@ -5,6 +5,7 @@ import java.io.IOException;
 public class Main {
 
     //  java -jar F:\JAVA\ShylkoVad-shift-intensive-2025\out\artifacts\ShylkoVad_shift_intensive_2025_jar\ShylkoVad-shift-intensive-2025.jar
+    // java -jar F:\JAVA\ShylkoVad-shift-intensive-2025\out\artifacts\ShylkoVad_shift_intensive_2025_jar\ShylkoVad-shift-intensive-2025.jar --sort=salary --order=asc
 
     public static void main(String[] args) throws IOException {
 
