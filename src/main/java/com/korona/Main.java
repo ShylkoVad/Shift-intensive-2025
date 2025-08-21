@@ -44,6 +44,30 @@ public class Main {
         System.out.println("Путь к выходному файлу: " + outputPath);
 
         //Проверка на корректность ввода параметров
+        if (sortParameter != null && orderParameter == null) {
+            System.out.println("Ошибка: порядок сортировки не указан для параметра сортировки: " + sortParameter);
+            return;
+        }
+
+        if (orderParameter != null && !orderParameter.equals("asc") && !orderParameter.equals("desc")) {
+            System.out.println("Ошибка: неверный параметр порядка сортировки: " + orderParameter);
+            return;
+        }
+
+        if (statParameter != null) {
+            System.out.println("Ошибка: не указана статистика: " + sortParameter);
+            return;
+        }
+
+        if ("file".equals(outputParameter) && outputPath == null) {
+            System.out.println("Ошибка: путь к выходному файлу не указан.");
+            return;
+        }
+
+        if (outputParameter != null && !outputParameter.equals("console") && !outputParameter.equals("file")) {
+            System.out.println("Ошибка: неверный параметр вывода: " + outputParameter);
+            return;
+        }
 
         // Очистка файла error.log в начале программы
         fileManager.clearErrorLog();
