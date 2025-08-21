@@ -89,7 +89,9 @@ public class CustomFileHandler {
         }
     }
 
-    public List<String> processAndPrintFiles(Map<String, Department> departments) {
+    public void processAndPrintFiles() {
+
+        Map<String, Department> departments = new HashMap<>();
 
         // Получаем список файлов .sb для обработки
         List<File> sbFiles = getSbFiles();
@@ -110,7 +112,6 @@ public class CustomFileHandler {
 
         printErrorLogContents(); // Вывод содержимого error.log
 
-        return createdFiles; // Возвращаем список созданных файлов
     }
 
     public void printErrorLogContents() {

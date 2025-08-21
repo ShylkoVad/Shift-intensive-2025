@@ -1,8 +1,6 @@
 package com.korona;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 public class Main {
 
@@ -12,7 +10,6 @@ public class Main {
 
         FileManager fileManager = new FileManager();
         CustomFileHandler fileHandler = new CustomFileHandler();
-        Map<String, Department> departments = new HashMap<>();
 
         // Инициализация параметров
         String sortParameter = null;
@@ -73,7 +70,7 @@ public class Main {
         fileManager.clearErrorLog();
 
         // Обрабатываем файлы и выводим их содержимое
-        fileHandler.processAndPrintFiles(departments);
+        fileHandler.processAndPrintFiles();
 
     }
 }
