@@ -1,9 +1,7 @@
 package com.korona;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Main {
@@ -16,27 +14,42 @@ public class Main {
         CustomFileHandler fileHandler = new CustomFileHandler();
         Map<String, Department> departments = new HashMap<>();
 
+        // Инициализация параметров
+        String sortParameter = null;
+        String orderParameter = null;
+        String statParameter = null;
+        String outputParameter = null;
+        String outputPath = null;
+
+        // Обработка аргументов командной строки
+        for (String arg : args) {
+            if (arg.startsWith("--sort=") || arg.startsWith("-s=")) {
+                sortParameter = arg.split("=")[1];
+            } else if (arg.startsWith("--order=")) {
+                orderParameter = arg.split("=")[1];
+            } else if (arg.startsWith("--stat=")) {
+                statParameter = arg.split("=")[1];
+            } else if (arg.startsWith("--output=") || arg.startsWith("-o=")) {
+                outputParameter = arg.split("=")[1];
+            } else if (arg.startsWith("--path=")) {
+                outputPath = arg.split("=")[1];
+            }
+        }
+
+        // Отладочные сообщения
+        System.out.println("Параметр сортировки: " + sortParameter);
+        System.out.println("Порядок сортировки: " + orderParameter);
+        System.out.println("Порядок сортировки: " + statParameter);
+        System.out.println("Параметр вывода: " + outputParameter);
+        System.out.println("Путь к выходному файлу: " + outputPath);
+
+        //Проверка на корректность ввода параметров
+
         // Очистка файла error.log в начале программы
         fileManager.clearErrorLog();
 
-        // Получаем список файлов .sb для обработки
-        List<File> sbFiles = fileHandler.getSbFiles();
-
         // Обрабатываем файлы и выводим их содержимое
-       fileHandler.processAndPrintFiles(sbFiles, departments);
+        fileHandler.processAndPrintFiles(departments);
 
-    }
-
-    private Map<String, String> parseArgs(String[] args) {
-        Map<String, String> params = new HashMap<>();
-        for (String arg : args) {
-            String[] parts = arg.split("=");
-            if (parts.length == 2) {
-                params.put(parts[0], parts[1]);
-            } else {
-                params.put(parts[0], null);
-            }
-        }
-        return params;
     }
 }

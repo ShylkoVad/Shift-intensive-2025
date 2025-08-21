@@ -89,7 +89,11 @@ public class CustomFileHandler {
         }
     }
 
-    public List<String> processAndPrintFiles(List<File> sbFiles, Map<String, Department> departments) {
+    public List<String> processAndPrintFiles(Map<String, Department> departments) {
+
+        // Получаем список файлов .sb для обработки
+        List<File> sbFiles = getSbFiles();
+
         // Обработка файлов и получение списка созданных файлов
         List<String> createdFiles = processFiles(sbFiles, departments);
 
