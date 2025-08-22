@@ -15,8 +15,8 @@ public class EmployeeSorter {
         DESCENDING
     }
 
-    public static void sortEmployees(List<Employee> employees, Set<Integer> managerIndexes, SortCriteria criteria, SortOrder order) {
-        Comparator<Employee> comparator;
+    public static void sortEmployees(List<Employee> employees, SortCriteria criteria, SortOrder order) {
+        Comparator<Employee> comparator = null;
 
         switch (criteria) {
             case NAME:
@@ -25,15 +25,14 @@ public class EmployeeSorter {
             case SALARY:
                 comparator = Comparator.comparingDouble(Employee::getSalary);
                 break;
-            default:
-                throw new IllegalArgumentException("Unknown sort criteria: " + criteria);
         }
 
-        if (order == SortOrder.DESCENDING) {
+        if (order == SortOrder.DESCENDING && comparator != null) {
             comparator = comparator.reversed();
         }
 
-        // Сортируем сотрудников
-        employees.sort(comparator);
+        if (comparator != null) {
+            employees.sort(comparator);
+        }
     }
 }
