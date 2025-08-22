@@ -1,5 +1,8 @@
 package com.korona;
 
+import com.korona.EmployeeSorter.SortCriteria;
+import com.korona.EmployeeSorter.SortOrder;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -30,7 +33,7 @@ public class CustomFileHandler {
                 .collect(Collectors.toList());
     }
 
-    public List<String> processFiles(List<File> files, Map<String, Department> departments) {
+    public List<String> processFiles(List<File> files, Map<String, Department> departments, SortCriteria criteria, SortOrder order) {
         Set<String> employeeIds = new HashSet<>(); // Создаем множество для employee IDs
         Set<String> managerIds = new HashSet<>(); // Создаем множество для manager IDs
         List<String> allLines = new ArrayList<>(); // Список для хранения всех строк из всех файлов
@@ -69,7 +72,7 @@ public class CustomFileHandler {
 
         // Обрабатываем строки из validLines
         try {
-            parseLine(validLines, departments, employeeIds, managerIds);
+            parseLine(validLines, departments, employeeIds, managerIds, criteria, order);
         } catch (InvalidEmployeeDataException e) {
             throw new RuntimeException(e);
         }
@@ -89,15 +92,14 @@ public class CustomFileHandler {
         }
     }
 
-    public void processAndPrintFiles() {
-
+    public void processAndPrintFiles(SortCriteria criteria, SortOrder order) {
         Map<String, Department> departments = new HashMap<>();
 
         // Получаем список файлов .sb для обработки
         List<File> sbFiles = getSbFiles();
 
         // Обработка файлов и получение списка созданных файлов
-        List<String> createdFiles = processFiles(sbFiles, departments);
+        List<String> createdFiles = processFiles(sbFiles, departments, criteria, order);
 
         // Сортируем созданные файлы по имени
         createdFiles.sort(String::compareTo);
@@ -132,13 +134,12 @@ public class CustomFileHandler {
         }
     }
 
-    public void parseLine(List<String> lines, Map<String, Department> departments, Set<String> employeeIds, Set<String> managerIds)
-            throws InvalidEmployeeDataException {
-        // Создаем менеджеров и соответствующие департаменты
+    public void parseLine(List<String> lines, Map<String, Department> departments, Set<String> employeeIds, Set<String> managerIds, SortCriteria criteria, SortOrder order) throws InvalidEmployeeDataException {
+        // Сначала создаем всех менеджеров и департаменты
         Map<String, Manager> managers = createManagers(lines, departments, managerIds);
 
-        // Теперь добавляем сотрудников
-        addEmployees(lines, departments, managers, employeeIds);
+        // Затем добавляем сотрудников (уже с сортировкой)
+        addEmployees(lines, departments, managers, employeeIds, criteria, order);
     }
 
     private Map<String, Manager> createManagers(List<String> lines, Map<String, Department> departments, Set<String> managerIds) throws InvalidEmployeeDataException {
@@ -176,7 +177,9 @@ public class CustomFileHandler {
         return managers; // Возвращаем карту менеджеров
     }
 
-    private void addEmployees(List<String> lines, Map<String, Department> departments, Map<String, Manager> managers, Set<String> employeeIds) {
+    public void addEmployees(List<String> lines, Map<String, Department> departments, Map<String, Manager> managers, Set<String> employeeIds, SortCriteria criteria, SortOrder order) {
+        List<Employee> employees = new ArrayList<>(); // Список для хранения всех сотрудников
+
         for (String line : lines) {
             String[] parts = line.split(",");
             if (parts.length < 5) {
@@ -196,25 +199,33 @@ public class CustomFileHandler {
 
             // Создаем объект Employee
             Employee employee = new Employee(id, name, Double.parseDouble(salaryStr), managerId);
+            employees.add(employee);
+            employeeIds.add(id);
+        }
 
-            // Проверяем, существует ли менеджер
-            Manager manager = managers.get(managerId);
+        // СОРТИРОВКА: применяем сортировку ко всем сотрудникам
+        if (criteria != null && order != null) {
+            EmployeeSorter.sortEmployees(employees, criteria, order);
+        }
+
+        // Теперь добавляем отсортированных сотрудников в департаменты
+        for (Employee employee : employees) {
+            Manager manager = managers.get(employee.getManagerId());
             if (manager != null) {
-                String departmentName = manager.getDepartmentId(); // Получаем название департамента менеджера
-
-                // Проверяем, существует ли департамент
+                String departmentName = manager.getDepartmentId();
                 if (departments.containsKey(departmentName)) {
                     // Записываем данные сотрудника в файл
                     fileManager.appendEmployeeToDepartmentFile(departmentName, employee.toString());
-                    employeeIds.add(id); // Добавляем ID сотрудника в множество
                 } else {
                     logger.logError("Department not found for department name: " + departmentName);
                 }
             } else {
-                logger.logError("Manager not found for employee: " + line);
+                logger.logError("Manager not found for employee: " + employee.getId());
             }
         }
     }
+
+
 
     public static class InvalidEmployeeDataException extends Exception {
         public InvalidEmployeeDataException(String message) {
