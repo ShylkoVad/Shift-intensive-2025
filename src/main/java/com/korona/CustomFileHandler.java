@@ -255,12 +255,29 @@ public class CustomFileHandler {
         }
 
         Map<String, Statistics> statisticsMap = new HashMap<>();
+        Map<Integer, String> departmentMap = new HashMap<>(); // Для хранения департаментов менеджеров
+
+        // Сначала собираем информацию о менеджерах и их департаментах
+        for (String line : allLines) {
+            String[] parts = line.split(",");
+            if (parts.length >= 5 && parts[0].trim().equals("Manager")) {
+                int managerId = Integer.parseInt(parts[1].trim());
+                String departmentName = parts[4].trim(); // Департамент у менеджера
+                departmentMap.put(managerId, departmentName);
+            }
+        }
 
         // Собираем статистику по сотрудникам (только Employee)
         for (String line : allLines) {
             String[] parts = line.split(",");
             if (parts.length >= 5 && parts[0].trim().equals("Employee")) {
-                String departmentId = parts[4].trim(); // managerId = departmentId
+                int managerId = Integer.parseInt(parts[4].trim()); // ID менеджера
+
+                // Получаем название департамента через managerId
+                String departmentName = departmentMap.get(managerId);
+                if (departmentName == null) {
+                    continue; // Если департамент не найден, пропускаем сотрудника
+                }
 
                 // Проверяем валидность зарплаты
                 try {
@@ -268,13 +285,13 @@ public class CustomFileHandler {
                     if (salary < 0) continue; // Пропускаем отрицательные зарплаты
 
                     // Создаем или получаем статистику для департамента
-                    Statistics stats = statisticsMap.computeIfAbsent(departmentId,
-                            k -> new Statistics(departmentId));
+                    Statistics stats = statisticsMap.computeIfAbsent(departmentName,
+                            k -> new Statistics(departmentName));
                     stats.addSalary(salary);
 
                 } catch (NumberFormatException e) {
                     // Пропускаем некорректные зарплаты
-                    logger.logError("Invalid salary format: " + line);
+                    System.err.println("Invalid salary format: " + line);
                 }
             }
         }
