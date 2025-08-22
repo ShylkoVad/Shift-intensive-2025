@@ -4,8 +4,10 @@ import com.korona.EmployeeSorter.SortCriteria;
 import com.korona.EmployeeSorter.SortOrder;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,9 +22,11 @@ public class CustomFileHandler {
     FileManager fileManager = new FileManager();
     EmployeeDataValidator employeeDataValidator = new EmployeeDataValidator();
     private final ErrorLogger logger;
+    private Map<String, Department> departments; // Добавляем поле
 
     public CustomFileHandler() {
         this.logger = ErrorLogger.getInstance("error.log");
+        this.departments = new HashMap<>(); // Инициализируем
     }
 
     // Метод для поиска файлов с расширением .sb
@@ -33,7 +37,7 @@ public class CustomFileHandler {
                 .collect(Collectors.toList());
     }
 
-    public List<String> processFiles(List<File> files, Map<String, Department> departments, SortCriteria criteria, SortOrder order) {
+    public List<String> processFiles(List<File> files, SortCriteria criteria, SortOrder order) {
         Set<String> employeeIds = new HashSet<>(); // Создаем множество для employee IDs
         Set<String> managerIds = new HashSet<>(); // Создаем множество для manager IDs
         List<String> allLines = new ArrayList<>(); // Список для хранения всех строк из всех файлов
@@ -72,7 +76,8 @@ public class CustomFileHandler {
 
         // Обрабатываем строки из validLines
         try {
-            parseLine(validLines, departments, employeeIds, managerIds, criteria, order);
+            // Вместо передачи departments используем this.departments
+            parseLine(validLines, this.departments, employeeIds, managerIds, criteria, order);
         } catch (InvalidEmployeeDataException e) {
             throw new RuntimeException(e);
         }
@@ -93,27 +98,29 @@ public class CustomFileHandler {
     }
 
     public void processAndPrintFiles(SortCriteria criteria, SortOrder order) {
-        Map<String, Department> departments = new HashMap<>();
+
+        // Инициализируем поле departments
+        this.departments = new HashMap<>();
 
         // Получаем список файлов .sb для обработки
         List<File> sbFiles = getSbFiles();
 
         // Обработка файлов и получение списка созданных файлов
-        List<String> createdFiles = processFiles(sbFiles, departments, criteria, order);
+        // Убираем departments из параметров, так как он теперь поле
+        List<String> createdFiles = processFiles(sbFiles, criteria, order);
 
         // Сортируем созданные файлы по имени
         createdFiles.sort(String::compareTo);
 
         // Вывод содержимого вновь созданных файлов
         for (String fileName : createdFiles) {
-            File newFile = new File(fileName); // Создаем объект File для нового файла
+            File newFile = new File(fileName);
             System.out.println(newFile.getName());
-            printFileContents(newFile); // Выводим содержимое файла
-            System.out.println(); // Пустая строка для разделения выводов
+            printFileContents(newFile);
+            System.out.println();
         }
 
-        printErrorLogContents(); // Вывод содержимого error.log
-
+        printErrorLogContents();
     }
 
     public void printErrorLogContents() {
@@ -134,7 +141,10 @@ public class CustomFileHandler {
         }
     }
 
-    public void parseLine(List<String> lines, Map<String, Department> departments, Set<String> employeeIds, Set<String> managerIds, SortCriteria criteria, SortOrder order) throws InvalidEmployeeDataException {
+    // Обновляем сигнатуру метода parseLine
+    public void parseLine(List<String> lines, Map<String, Department> departments,
+                          Set<String> employeeIds, Set<String> managerIds,
+                          SortCriteria criteria, SortOrder order) throws InvalidEmployeeDataException {
         // Сначала создаем всех менеджеров и департаменты
         Map<String, Manager> managers = createManagers(lines, departments, managerIds);
 
@@ -203,12 +213,12 @@ public class CustomFileHandler {
             employeeIds.add(id);
         }
 
-        // СОРТИРОВКА: применяем сортировку ко всем сотрудникам
+        // Применяем сортировку ко всем сотрудникам
         if (criteria != null && order != null) {
             EmployeeSorter.sortEmployees(employees, criteria, order);
         }
 
-        // Теперь добавляем отсортированных сотрудников в департаменты
+        // Добавляем отсортированных сотрудников в департаменты
         for (Employee employee : employees) {
             Manager manager = managers.get(employee.getManagerId());
             if (manager != null) {
@@ -225,7 +235,84 @@ public class CustomFileHandler {
         }
     }
 
+    public void printStatistics(String outputParameter, String outputPath) {
+        // Обрабатываем файлы, чтобы получить данные
+        List<File> sbFiles = getSbFiles();
 
+        // Создаем временный список для хранения всех строк
+        List<String> allLines = new ArrayList<>();
+
+        // Читаем все строки из всех .sb файлов
+        for (File file : sbFiles) {
+            try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    allLines.add(line);
+                }
+            } catch (IOException e) {
+                System.err.println("Error reading file: " + file.getName() + " - " + e.getMessage());
+            }
+        }
+
+        Map<String, Statistics> statisticsMap = new HashMap<>();
+
+        // Собираем статистику по сотрудникам (только Employee)
+        for (String line : allLines) {
+            String[] parts = line.split(",");
+            if (parts.length >= 5 && parts[0].trim().equals("Employee")) {
+                String departmentId = parts[4].trim(); // managerId = departmentId
+
+                // Проверяем валидность зарплаты
+                try {
+                    double salary = Double.parseDouble(parts[3].trim());
+                    if (salary < 0) continue; // Пропускаем отрицательные зарплаты
+
+                    // Создаем или получаем статистику для департамента
+                    Statistics stats = statisticsMap.computeIfAbsent(departmentId,
+                            k -> new Statistics(departmentId));
+                    stats.addSalary(salary);
+
+                } catch (NumberFormatException e) {
+                    // Пропускаем некорректные зарплаты
+                    logger.logError("Invalid salary format: " + line);
+                }
+            }
+        }
+
+        // Подготовка вывода
+        StringBuilder output = new StringBuilder();
+        output.append("department,min,max,mid\n");
+
+        // Сортировка и вывод статистики
+        statisticsMap.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey()) // Сортировка по имени департамента
+                .forEach(entry -> {
+                    Statistics stats = entry.getValue();
+                    double min = Math.ceil(stats.getMinSalary() * 100.0) / 100.0;
+                    double max = Math.ceil(stats.getMaxSalary() * 100.0) / 100.0;
+                    double avg = Math.ceil(stats.getAverageSalary() * 100.0) / 100.0;
+                    output.append(String.format("%s,%.2f,%.2f,%.2f\n",
+                            stats.getDepartmentName(), min, max, avg));
+                });
+
+        // Определение способа вывода
+        if (outputParameter == null || "console".equalsIgnoreCase(outputParameter)) {
+            System.out.println(output.toString());
+        } else if ("file".equalsIgnoreCase(outputParameter)) {
+            if (outputPath == null) {
+                System.out.println("Ошибка: путь к выходному файлу не указан.");
+                return;
+            }
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputPath))) {
+                writer.write(output.toString());
+                System.out.println("Статистика сохранена в файл: " + outputPath);
+            } catch (IOException e) {
+                System.err.println("Ошибка при записи в файл: " + e.getMessage());
+            }
+        } else {
+            System.out.println("Ошибка: неверный параметр вывода: " + outputParameter);
+        }
+    }
 
     public static class InvalidEmployeeDataException extends Exception {
         public InvalidEmployeeDataException(String message) {

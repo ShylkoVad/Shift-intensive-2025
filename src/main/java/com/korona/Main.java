@@ -9,9 +9,12 @@ public class Main {
     // java -jar F:\JAVA\ShylkoVad-shift-intensive-2025\out\artifacts\ShylkoVad_shift_intensive_2025_jar\ShylkoVad-shift-intensive-2025.jar --sort=salary --order=desc
     // java -jar F:\JAVA\ShylkoVad-shift-intensive-2025\out\artifacts\ShylkoVad_shift_intensive_2025_jar\ShylkoVad-shift-intensive-2025.jar --sort=name --order=asc
     // java -jar F:\JAVA\ShylkoVad-shift-intensive-2025\out\artifacts\ShylkoVad_shift_intensive_2025_jar\ShylkoVad-shift-intensive-2025.jar --sort=name --order=desc
+    // java -jar F:\JAVA\ShylkoVad-shift-intensive-2025\out\artifacts\ShylkoVad_shift_intensive_2025_jar\ShylkoVad-shift-intensive-2025.jar --stat
+    // java -jar F:\JAVA\ShylkoVad-shift-intensive-2025\out\artifacts\ShylkoVad_shift_intensive_2025_jar\ShylkoVad-shift-intensive-2025.jar --stat --output=console
+    // java -jar F:\JAVA\ShylkoVad-shift-intensive-2025\out\artifacts\ShylkoVad_shift_intensive_2025_jar\ShylkoVad-shift-intensive-2025.jar --stat --output=file
+    // java -jar F:\JAVA\ShylkoVad-shift-intensive-2025\out\artifacts\ShylkoVad_shift_intensive_2025_jar\ShylkoVad-shift-intensive-2025.jar --stat --output=file --path=F:\JAVA\ShylkoVad-shift-intensive-2025\statistic.org
 
     public static void main(String[] args) throws IOException {
-
         FileManager fileManager = new FileManager();
         CustomFileHandler fileHandler = new CustomFileHandler();
 
@@ -28,8 +31,8 @@ public class Main {
                 sortParameter = arg.split("=")[1];
             } else if (arg.startsWith("--order=")) {
                 orderParameter = arg.split("=")[1];
-            } else if (arg.startsWith("--stat=")) {
-                statParameter = arg.split("=")[1];
+            } else if (arg.equals("--stat")) {
+                statParameter = "stat";  // значение по умолчанию
             } else if (arg.startsWith("--output=") || arg.startsWith("-o=")) {
                 outputParameter = arg.split("=")[1];
             } else if (arg.startsWith("--path=")) {
@@ -40,11 +43,11 @@ public class Main {
         // Отладочные сообщения
         System.out.println("Параметр сортировки: " + sortParameter);
         System.out.println("Порядок сортировки: " + orderParameter);
-        System.out.println("Порядок сортировки: " + statParameter);
+        System.out.println("Статистика: " + statParameter);
         System.out.println("Параметр вывода: " + outputParameter);
         System.out.println("Путь к выходному файлу: " + outputPath);
 
-        // Проверка на корректность ввода параметров
+        // Проверка на корректность ввода параметров сортировки
         if (sortParameter != null && orderParameter == null) {
             System.out.println("Ошибка: порядок сортировки не указан для параметра сортировки: " + sortParameter);
             return;
@@ -71,11 +74,27 @@ public class Main {
             order = EmployeeSorter.SortOrder.DESCENDING;
         }
 
+        // Проверка на корректность ввода параметров статистики
+        if (statParameter != null) {
+            // Если задан --stat, проверяем корректность output параметров
+            if (outputParameter != null && !outputParameter.equals("console") && !outputParameter.equals("file")) {
+                System.out.println("Ошибка: неверный параметр вывода: " + outputParameter);
+                return;
+            }
+
+            if ("file".equals(outputParameter) && outputPath == null) {
+                System.out.println("Ошибка: путь к выходному файлу не указан для --output=file");
+                return;
+            }
+
+            // Обработка статистики
+            fileHandler.printStatistics(outputParameter, outputPath);
+        }
+
         // Очистка файла error.log в начале программы
         fileManager.clearErrorLog();
 
         // Обрабатываем файлы и выводим их содержимое
         fileHandler.processAndPrintFiles(criteria, order);
     }
-
 }
