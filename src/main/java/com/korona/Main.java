@@ -6,6 +6,9 @@ public class Main {
 
     //  java -jar F:\JAVA\ShylkoVad-shift-intensive-2025\out\artifacts\ShylkoVad_shift_intensive_2025_jar\ShylkoVad-shift-intensive-2025.jar
     // java -jar F:\JAVA\ShylkoVad-shift-intensive-2025\out\artifacts\ShylkoVad_shift_intensive_2025_jar\ShylkoVad-shift-intensive-2025.jar --sort=salary --order=asc
+    // java -jar F:\JAVA\ShylkoVad-shift-intensive-2025\out\artifacts\ShylkoVad_shift_intensive_2025_jar\ShylkoVad-shift-intensive-2025.jar --sort=salary --order=desc
+    // java -jar F:\JAVA\ShylkoVad-shift-intensive-2025\out\artifacts\ShylkoVad_shift_intensive_2025_jar\ShylkoVad-shift-intensive-2025.jar --sort=name --order=asc
+    // java -jar F:\JAVA\ShylkoVad-shift-intensive-2025\out\artifacts\ShylkoVad_shift_intensive_2025_jar\ShylkoVad-shift-intensive-2025.jar --sort=name --order=desc
 
     public static void main(String[] args) throws IOException {
 
@@ -41,7 +44,7 @@ public class Main {
         System.out.println("Параметр вывода: " + outputParameter);
         System.out.println("Путь к выходному файлу: " + outputPath);
 
-        //Проверка на корректность ввода параметров
+        // Проверка на корректность ввода параметров
         if (sortParameter != null && orderParameter == null) {
             System.out.println("Ошибка: порядок сортировки не указан для параметра сортировки: " + sortParameter);
             return;
@@ -52,26 +55,27 @@ public class Main {
             return;
         }
 
-        if (statParameter != null) {
-            System.out.println("Ошибка: не указана статистика: " + sortParameter);
-            return;
+        // Устанавливаем критерий сортировки
+        EmployeeSorter.SortCriteria criteria = null;
+        if ("name".equalsIgnoreCase(sortParameter)) {
+            criteria = EmployeeSorter.SortCriteria.NAME;
+        } else if ("salary".equalsIgnoreCase(sortParameter)) {
+            criteria = EmployeeSorter.SortCriteria.SALARY;
         }
 
-        if ("file".equals(outputParameter) && outputPath == null) {
-            System.out.println("Ошибка: путь к выходному файлу не указан.");
-            return;
-        }
-
-        if (outputParameter != null && !outputParameter.equals("console") && !outputParameter.equals("file")) {
-            System.out.println("Ошибка: неверный параметр вывода: " + outputParameter);
-            return;
+        // Устанавливаем порядок сортировки
+        EmployeeSorter.SortOrder order = null;
+        if ("asc".equalsIgnoreCase(orderParameter)) {
+            order = EmployeeSorter.SortOrder.ASCENDING;
+        } else if ("desc".equalsIgnoreCase(orderParameter)) {
+            order = EmployeeSorter.SortOrder.DESCENDING;
         }
 
         // Очистка файла error.log в начале программы
         fileManager.clearErrorLog();
 
         // Обрабатываем файлы и выводим их содержимое
-        fileHandler.processAndPrintFiles();
-
+        fileHandler.processAndPrintFiles(criteria, order);
     }
+
 }
