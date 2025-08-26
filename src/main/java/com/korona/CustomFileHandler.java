@@ -52,7 +52,7 @@ public class CustomFileHandler {
                     allLines.add(line);
                 }
             } catch (IOException e) {
-                System.err.println("Error reading file: " + file.getName() + " - " + e.getMessage());
+                System.err.println("Ошибка чтения файла: " + file.getName() + " - " + e.getMessage());
             }
         }
 
@@ -118,7 +118,7 @@ public class CustomFileHandler {
         for (String line : lines) {
             String[] parts = line.split(",");
             if (parts.length < 5) {
-                logger.logError("Not enough data: " + line);
+                logger.logError("Недостаточно данных: " + line);
                 continue; // Пропустить строку с недостаточными данными
             }
 
@@ -187,10 +187,10 @@ public class CustomFileHandler {
                     // Записываем данные сотрудника в файл
                     fileManager.appendEmployeeToDepartmentFile(departmentName, employee.toString());
                 } else {
-                    logger.logError("Department not found for department name: " + departmentName);
+                    logger.logError("Отдел не найден по названию отдела: " + departmentName);
                 }
             } else {
-                logger.logError("Manager not found for employee: " + employee.getId());
+                logger.logError("Руководитель не найден по названию сотрудника: " + employee.getId());
             }
         }
     }
@@ -226,13 +226,13 @@ public class CustomFileHandler {
                                     stats.addSalary(salary);
                                 }
                             } catch (NumberFormatException e) {
-                                System.err.println("Invalid salary format in file " + fileName + ": " + line);
+                                System.err.println("Неверный формат зарплаты в файле " + fileName + ": " + line);
                             }
                         }
                     }
                 }
             } catch (IOException e) {
-                System.err.println("Error reading file: " + fileName + " - " + e.getMessage());
+                System.err.println("Ошибка чтения файла: " + fileName + " - " + e.getMessage());
             }
 
             // Добавляем статистику, даже если в департаменте есть только менеджер

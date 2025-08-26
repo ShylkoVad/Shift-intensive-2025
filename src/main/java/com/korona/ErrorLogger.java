@@ -26,7 +26,7 @@ public class ErrorLogger {
              PrintWriter out = new PrintWriter(bw)) {
             out.println(message); // Записываем сообщение об ошибке
         } catch (IOException e) {
-            System.err.println("Error writing to log file: " + e.getMessage());
+            System.err.println("Ошибка записи в файл журнала: " + e.getMessage());
         }
     }
 }

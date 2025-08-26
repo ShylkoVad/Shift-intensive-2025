@@ -23,7 +23,8 @@ public class FileManager {
                     writer.newLine();
                 }
             } catch (IOException e) {
-                System.err.println("Error writing managers to file for department manager ID " + departmentManagerID + ": " + e.getMessage());
+                System.err.println("Ошибка записи менеджеров в файл по идентификатору менеджера отдела " +
+                        departmentManagerID + ": " + e.getMessage());
             }
         }
     }
@@ -45,7 +46,7 @@ public class FileManager {
                 return true; // Файл очищен
             }
         } catch (IOException e) {
-            System.err.println("Error creating or clearing file: " + e.getMessage());
+            System.err.println("Ошибка создания или очистки файла: " + e.getMessage());
             return false; // Ошибка при создании или очистке файла
         }
     }
@@ -53,7 +54,7 @@ public class FileManager {
     public void appendEmployeeToDepartmentFile(String departmentManagerID, String employeeData) {
         File file = new File(departmentManagerID + ".sb"); // Создаем файл с расширением .sb
         if (!file.exists()) {
-            System.err.println("Error: File for department manager ID " + departmentManagerID + " does not exist.");
+            System.err.println("Ошибка: Файл по идентификатору менеджера отдела " + departmentManagerID + " не существует.");
             return; // Возвращаемся, если файл не существует
         }
 
@@ -61,7 +62,7 @@ public class FileManager {
             writer.write(employeeData);
             writer.newLine();
         } catch (IOException e) {
-            System.err.println("Error appending employee data for department manager ID " + departmentManagerID + ": " + e.getMessage());
+            System.err.println("Ошибка добавления данных о сотруднике по идентификатору менеджера отдела " + departmentManagerID + ": " + e.getMessage());
         }
     }
 
@@ -69,7 +70,7 @@ public class FileManager {
         try (PrintWriter out = new PrintWriter(new FileWriter(Constants.ERROR_LOG, false))) { // false для перезаписи
             // Просто создаем пустой файл
         } catch (IOException e) {
-            System.err.println("Error clearing error log: " + e.getMessage());
+            System.err.println("Ошибка очистки журнала ошибок: " + e.getMessage());
         }
     }
 }

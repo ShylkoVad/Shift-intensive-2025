@@ -2,7 +2,6 @@ package com.korona;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 
 public class EmployeeSorter {
     public enum SortCriteria {
