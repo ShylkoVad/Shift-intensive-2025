@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -195,83 +196,74 @@ public class CustomFileHandler {
     }
 
     public void printStatistics(String outputParameter, String outputPath) {
-        // Обрабатываем файлы, чтобы получить данные
-        List<File> sbFiles = getSbFiles();
+        // Используем уже созданные файлы из FileManager
+        List<String> createdFiles = fileManager.getCreatedFiles();
 
-        // Создаем временный список для хранения всех строк
-        List<String> allLines = new ArrayList<>();
-
-        // Читаем все строки из всех .sb файлов
-        for (File file : sbFiles) {
-            try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-                String line;
-                while ((line = br.readLine()) != null) {
-                    allLines.add(line);
-                }
-            } catch (IOException e) {
-                System.err.println("Error reading file: " + file.getName() + " - " + e.getMessage());
-            }
+        if (createdFiles.isEmpty()) {
+            System.out.println("Нет обработанных файлов для сбора статистики");
+            return;
         }
 
         Map<String, Statistics> statisticsMap = new HashMap<>();
-        Map<Integer, String> departmentMap = new HashMap<>(); // Для хранения департаментов менеджеров
 
-        // Сначала собираем информацию о менеджерах и их департаментах
-        for (String line : allLines) {
-            String[] parts = line.split(",");
-            if (parts.length >= 5 && parts[0].trim().equals("Manager")) {
-                int managerId = Integer.parseInt(parts[1].trim());
-                String departmentName = parts[4].trim(); // Департамент у менеджера
-                departmentMap.put(managerId, departmentName);
+        for (String fileName : createdFiles) {
+            File file = new File(fileName);
+            String departmentName = fileName.replace(".sb", "");
+
+            Statistics stats = new Statistics(departmentName);
+
+            try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    String[] parts = line.split(",");
+                    if (parts.length >= 4) {
+                        String type = parts[0].trim();
+                        // Собираем статистику ТОЛЬКО по Employee (игнорируем Manager)
+                        if ("Employee".equals(type)) {
+                            try {
+                                double salary = Double.parseDouble(parts[3].trim());
+                                if (salary >= 0) {
+                                    stats.addSalary(salary);
+                                }
+                            } catch (NumberFormatException e) {
+                                System.err.println("Invalid salary format in file " + fileName + ": " + line);
+                            }
+                        }
+                    }
+                }
+            } catch (IOException e) {
+                System.err.println("Error reading file: " + fileName + " - " + e.getMessage());
             }
+
+            // Добавляем статистику, даже если в департаменте есть только менеджер
+            statisticsMap.put(departmentName, stats);
         }
 
-        // Собираем статистику по сотрудникам (только Employee)
-        for (String line : allLines) {
-            String[] parts = line.split(",");
-            if (parts.length >= 5 && parts[0].trim().equals("Employee")) {
-                int managerId = Integer.parseInt(parts[4].trim()); // ID менеджера
-
-                // Получаем название департамента через managerId
-                String departmentName = departmentMap.get(managerId);
-                if (departmentName == null) {
-                    continue; // Если департамент не найден, пропускаем сотрудника
-                }
-
-                // Проверяем валидность зарплаты
-                try {
-                    double salary = Double.parseDouble(parts[3].trim());
-                    if (salary < 0) continue; // Пропускаем отрицательные зарплаты
-
-                    // Создаем или получаем статистику для департамента
-                    Statistics stats = statisticsMap.computeIfAbsent(departmentName,
-                            k -> new Statistics(departmentName));
-                    stats.addSalary(salary);
-
-                } catch (NumberFormatException e) {
-                    // Пропускаем некорректные зарплаты
-                    System.err.println("Invalid salary format: " + line);
-                }
-            }
-        }
-
-        // Подготовка вывода
+        // Формируем вывод
         StringBuilder output = new StringBuilder();
         output.append("department,min,max,mid\n");
 
-        // Сортировка и вывод статистики
         statisticsMap.entrySet().stream()
-                .sorted(Map.Entry.comparingByKey()) // Сортировка по имени департамента
+                .sorted(Map.Entry.comparingByKey())
                 .forEach(entry -> {
                     Statistics stats = entry.getValue();
-                    double min = Math.ceil(stats.getMinSalary() * 100.0) / 100.0;
-                    double max = Math.ceil(stats.getMaxSalary() * 100.0) / 100.0;
-                    double avg = Math.ceil(stats.getAverageSalary() * 100.0) / 100.0;
-                    output.append(String.format("%s,%.2f,%.2f,%.2f\n",
-                            stats.getDepartmentName(), min, max, avg));
+                    // Проверяем, есть ли сотрудники в департаменте
+                    if (stats.getMinSalary() == 0.0 && stats.getMaxSalary() == 0.0) {
+                        // Департамент без сотрудников
+                        output.append(String.format("%s,0.00,0.00,0.00\n", stats.getDepartmentName()));
+
+                    } else {
+                        double min = Math.ceil(stats.getMinSalary() * 100.0) / 100.0;
+                        double max = Math.ceil(stats.getMaxSalary() * 100.0) / 100.0;
+                        double avg = Math.ceil(stats.getAverageSalary() * 100.0) / 100.0;
+//                        output.append(String.format("%s,%.2f,%.2f,%.2f\n",
+//                                stats.getDepartmentName(), min, max, avg));
+                        output.append(String.format(Locale.US, "%s,%.2f,%.2f,%.2f\n",
+                                stats.getDepartmentName(), min, max, avg));
+                    }
                 });
 
-        // Определение способа вывода
+        // Вывод в консоль или файл (остается без изменений)
         if (outputParameter == null || "console".equalsIgnoreCase(outputParameter)) {
             System.out.println(output.toString());
         } else if ("file".equalsIgnoreCase(outputParameter)) {

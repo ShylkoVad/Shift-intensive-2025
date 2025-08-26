@@ -86,15 +86,17 @@ public class Main {
                 System.out.println("Ошибка: путь к выходному файлу не указан для --output=file");
                 return;
             }
-
-            // Обработка статистики
-            fileHandler.printStatistics(outputParameter, outputPath);
         }
 
         // Очистка файла error.log в начале программы
         fileManager.clearErrorLog();
 
-        // Обрабатываем файлы и выводим их содержимое
+        // Обрабатываем файлы и создаем департаменты
         fileHandler.processAndPrintFiles(criteria, order);
+
+        // Собираем статистику по уже созданным файлам
+        if (statParameter != null) {
+            fileHandler.printStatistics(outputParameter, outputPath);
+        }
     }
 }
