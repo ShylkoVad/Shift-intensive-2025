@@ -86,17 +86,6 @@ public class CustomFileHandler {
         return fileManager.getCreatedFiles();
     }
 
-    public void printFileContents(File file) {
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                System.out.println(line);
-            }
-        } catch (IOException e) {
-            System.err.println("Error reading file: " + e.getMessage());
-        }
-    }
-
     public void processAndPrintFiles(SortCriteria criteria, SortOrder order) {
 
         // Инициализируем поле departments
@@ -106,42 +95,12 @@ public class CustomFileHandler {
         List<File> sbFiles = getSbFiles();
 
         // Обработка файлов и получение списка созданных файлов
-        // Убираем departments из параметров, так как он теперь поле
         List<String> createdFiles = processFiles(sbFiles, criteria, order);
 
         // Сортируем созданные файлы по имени
         createdFiles.sort(String::compareTo);
-
-        // Вывод содержимого вновь созданных файлов
-        for (String fileName : createdFiles) {
-            File newFile = new File(fileName);
-            System.out.println(newFile.getName());
-            printFileContents(newFile);
-            System.out.println();
-        }
-
-        printErrorLogContents();
     }
 
-    public void printErrorLogContents() {
-        File errorLog = new File(Constants.ERROR_LOG);
-        if (!errorLog.exists()) {
-            System.out.println("Error log file does not exist.");
-            return;
-        }
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(errorLog))) {
-            String line;
-            System.out.println("error.log:");
-            while ((line = reader.readLine()) != null) {
-                System.out.println(line);
-            }
-        } catch (IOException e) {
-            System.err.println("Error reading error log: " + e.getMessage());
-        }
-    }
-
-    // Обновляем сигнатуру метода parseLine
     public void parseLine(List<String> lines, Map<String, Department> departments,
                           Set<String> employeeIds, Set<String> managerIds,
                           SortCriteria criteria, SortOrder order) throws InvalidEmployeeDataException {
