@@ -243,29 +243,26 @@ public class CustomFileHandler {
         StringBuilder output = new StringBuilder();
         output.append("department,min,max,mid\n");
 
+        // СОРТИРОВКА по имени департамента в лексикографическом порядке
         statisticsMap.entrySet().stream()
-                .sorted(Map.Entry.comparingByKey())
+                .sorted(Map.Entry.comparingByKey(String.CASE_INSENSITIVE_ORDER))
+
                 .forEach(entry -> {
                     Statistics stats = entry.getValue();
-                    // Проверяем, есть ли сотрудники в департаменте
                     if (stats.getMinSalary() == 0.0 && stats.getMaxSalary() == 0.0) {
-                        // Департамент без сотрудников
-                        output.append(String.format("%s,0.00,0.00,0.00\n", stats.getDepartmentName()));
-
+                        output.append(String.format(Locale.US, "%s,0.00,0.00,0.00\n", stats.getDepartmentName()));
                     } else {
                         double min = Math.ceil(stats.getMinSalary() * 100.0) / 100.0;
                         double max = Math.ceil(stats.getMaxSalary() * 100.0) / 100.0;
                         double avg = Math.ceil(stats.getAverageSalary() * 100.0) / 100.0;
-//                        output.append(String.format("%s,%.2f,%.2f,%.2f\n",
-//                                stats.getDepartmentName(), min, max, avg));
                         output.append(String.format(Locale.US, "%s,%.2f,%.2f,%.2f\n",
                                 stats.getDepartmentName(), min, max, avg));
                     }
                 });
 
-        // Вывод в консоль или файл (остается без изменений)
+        // Вывод в консоль или файл
         if (outputParameter == null || "console".equalsIgnoreCase(outputParameter)) {
-            System.out.println(output.toString());
+            System.out.print(output.toString());
         } else if ("file".equalsIgnoreCase(outputParameter)) {
             if (outputPath == null) {
                 System.out.println("Ошибка: путь к выходному файлу не указан.");
