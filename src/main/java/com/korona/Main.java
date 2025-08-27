@@ -1,10 +1,13 @@
 package com.korona;
 
-import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Main {
 
-    //  java -jar F:\JAVA\ShylkoVad-shift-intensive-2025\out\artifacts\ShylkoVad_shift_intensive_2025_jar\ShylkoVad-shift-intensive-2025.jar
+    // java -jar F:\JAVA\ShylkoVad-shift-intensive-2025\out\artifacts\ShylkoVad_shift_intensive_2025_jar\ShylkoVad-shift-intensive-2025.jar
     // java -jar F:\JAVA\ShylkoVad-shift-intensive-2025\out\artifacts\ShylkoVad_shift_intensive_2025_jar\ShylkoVad-shift-intensive-2025.jar --sort=salary --order=asc
     // java -jar F:\JAVA\ShylkoVad-shift-intensive-2025\out\artifacts\ShylkoVad_shift_intensive_2025_jar\ShylkoVad-shift-intensive-2025.jar --s=salary --order=desc
     // java -jar F:\JAVA\ShylkoVad-shift-intensive-2025\out\artifacts\ShylkoVad_shift_intensive_2025_jar\ShylkoVad-shift-intensive-2025.jar --sort=salary --order=desc
@@ -15,82 +18,133 @@ public class Main {
     // java -jar F:\JAVA\ShylkoVad-shift-intensive-2025\out\artifacts\ShylkoVad_shift_intensive_2025_jar\ShylkoVad-shift-intensive-2025.jar --stat --output=file
     // java -jar F:\JAVA\ShylkoVad-shift-intensive-2025\out\artifacts\ShylkoVad_shift_intensive_2025_jar\ShylkoVad-shift-intensive-2025.jar --stat --output=file --path=F:\JAVA\ShylkoVad-shift-intensive-2025\statistic.org
 
-    public static void main(String[] args) throws IOException {
-        FileManager fileManager = new FileManager();
-        CustomFileHandler fileHandler = new CustomFileHandler();
+    private static final Logger logger = Logger.getLogger(Main.class.getName());
+
+    // Допустимые параметры командной строки
+    private static final Map<String, String> VALID_PARAMETERS = new HashMap<>();
+
+    static {
+        VALID_PARAMETERS.put("--sort", "name|salary");
+        VALID_PARAMETERS.put("--s", "name|salary");
+        VALID_PARAMETERS.put("--order", "asc|desc");
+        VALID_PARAMETERS.put("--stat", "");
+        VALID_PARAMETERS.put("--output", "console|file");
+        VALID_PARAMETERS.put("--o", "console|file");
+        VALID_PARAMETERS.put("--path", "");
+    }
+
+    public static void main(String[] args) {
+        if (args.length == 0) {
+            return;
+        }
 
         // Инициализация параметров
-        String sortParameter = null;
-        String orderParameter = null;
-        String statParameter = null;
-        String outputParameter = null;
-        String outputPath = null;
+        Map<String, String> params = new HashMap<>();
 
-        // Обработка аргументов командной строки
-        for (String arg : args) {
-            if (arg.startsWith("--sort=") || arg.startsWith("--s=")) {
-                sortParameter = arg.split("=")[1];
-            } else if (arg.startsWith("--order=")) {
-                orderParameter = arg.split("=")[1];
-            } else if (arg.equals("--stat")) {
-                statParameter = "stat";  // значение по умолчанию
-            } else if (arg.startsWith("--output=") || arg.startsWith("--o=")) {
-                outputParameter = arg.split("=")[1];
-            } else if (arg.startsWith("--path=")) {
-                outputPath = arg.split("=")[1];
+        // Парсинг аргументов
+        try {
+            for (String arg : args) {
+                if (arg.contains("=")) {
+                    String[] parts = arg.split("=", 2);
+                    String key = parts[0];
+                    String value = parts[1];
+
+                    // Проверка валидности параметра
+                    if (!VALID_PARAMETERS.containsKey(key)) {
+                        throw new IllegalArgumentException("Неизвестный параметр: " + key);
+                    }
+
+                    // Проверка валидности значения
+                    String expectedValues = VALID_PARAMETERS.get(key);
+                    if (!expectedValues.isEmpty() && !expectedValues.contains(value)) {
+                        throw new IllegalArgumentException("Неверное значение для параметра " + key +
+                                ": " + value + ". Ожидается: " + expectedValues);
+                    }
+
+                    params.put(key, value);
+                } else {
+                    // Флаги без значений
+                    if (!VALID_PARAMETERS.containsKey(arg) || !VALID_PARAMETERS.get(arg).isEmpty()) {
+                        throw new IllegalArgumentException("Неверный формат параметра: " + arg);
+                    }
+                    params.put(arg, "true");
+                }
             }
+        } catch (IllegalArgumentException e) {
+            System.err.println("Ошибка: " + e.getMessage());
+            return;
         }
 
-        // Проверка на корректность ввода параметров сортировки
+        // Извлечение параметров
+        String sortParameter = getParameter(params, "--sort", "--s");
+        String orderParameter = params.get("--order");
+        boolean statParameter = params.containsKey("--stat");
+        String outputParameter = getParameter(params, "--output", "--o");
+        String outputPath = params.get("--path");
+
+        // Валидация зависимостей параметров
         if (sortParameter != null && orderParameter == null) {
-            System.out.println("Ошибка: порядок сортировки не указан для параметра сортировки: " + sortParameter);
+            System.err.println("Ошибка: параметр --order обязателен при использовании --sort");
             return;
         }
 
-        if (orderParameter != null && !orderParameter.equals("asc") && !orderParameter.equals("desc")) {
-            System.out.println("Ошибка: неверный параметр порядка сортировки: " + orderParameter);
+        if (orderParameter != null && sortParameter == null) {
+            System.err.println("Ошибка: параметр --sort обязателен при использовании --order");
             return;
         }
 
-        // Устанавливаем критерий сортировки
-        EmployeeSorter.SortCriteria criteria = null;
-        if ("name".equalsIgnoreCase(sortParameter)) {
-            criteria = EmployeeSorter.SortCriteria.NAME;
-        } else if ("salary".equalsIgnoreCase(sortParameter)) {
-            criteria = EmployeeSorter.SortCriteria.SALARY;
+        if (statParameter && outputParameter == null) {
+            System.err.println("Ошибка: параметр --output обязателен при использовании --stat");
+            return;
         }
 
-        // Устанавливаем порядок сортировки
-        EmployeeSorter.SortOrder order = null;
-        if ("asc".equalsIgnoreCase(orderParameter)) {
-            order = EmployeeSorter.SortOrder.ASCENDING;
-        } else if ("desc".equalsIgnoreCase(orderParameter)) {
-            order = EmployeeSorter.SortOrder.DESCENDING;
+        if ("file".equals(outputParameter) && outputPath == null) {
+            System.err.println("Ошибка: параметр --path обязателен при использовании --output=file");
+            return;
         }
 
-        // Проверка на корректность ввода параметров статистики
-        if (statParameter != null) {
-            // Если задан --stat, проверяем корректность output параметров
-            if (outputParameter != null && !outputParameter.equals("console") && !outputParameter.equals("file")) {
-                System.out.println("Ошибка: неверный параметр вывода: " + outputParameter);
-                return;
+        // Здесь можно продолжить выполнение основной логики программы
+        try {
+            // Очистка файла error.log
+            FileManager fileManager = new FileManager();
+            fileManager.clearErrorLog();
+
+            // Установка критериев сортировки
+            EmployeeSorter.SortCriteria criteria = null;
+            if (sortParameter != null) {
+                criteria = "name".equalsIgnoreCase(sortParameter) ?
+                        EmployeeSorter.SortCriteria.NAME : EmployeeSorter.SortCriteria.SALARY;
             }
 
-            if ("file".equals(outputParameter) && outputPath == null) {
-                System.out.println("Ошибка: путь к выходному файлу не указан для --output=file");
-                return;
+            // Установка порядка сортировки
+            EmployeeSorter.SortOrder order = null;
+            if (orderParameter != null) {
+                order = "asc".equalsIgnoreCase(orderParameter) ?
+                        EmployeeSorter.SortOrder.ASCENDING : EmployeeSorter.SortOrder.DESCENDING;
             }
+
+            // Обработка файлов
+            CustomFileHandler fileHandler = new CustomFileHandler();
+            fileHandler.processAndPrintFiles(criteria, order);
+
+            // Вывод статистики если требуется
+            if (statParameter) {
+                fileHandler.printStatistics(outputParameter, outputPath);
+            }
+
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Произошла ошибка во время выполнения: " + e.getMessage(), e);
         }
+    }
 
-        // Очистка файла error.log в начале программы
-        fileManager.clearErrorLog();
-
-        // Обрабатываем файлы и создаем департаменты
-        fileHandler.processAndPrintFiles(criteria, order);
-
-        // Собираем статистику по уже созданным файлам
-        if (statParameter != null) {
-            fileHandler.printStatistics(outputParameter, outputPath);
+    // Вспомогательный метод для получения параметра с приоритетом
+    private static String getParameter(Map<String, String> params, String primaryKey, String secondaryKey) {
+        if (params.containsKey(primaryKey)) {
+            return params.get(primaryKey);
         }
+        if (params.containsKey(secondaryKey)) {
+            return params.get(secondaryKey);
+        }
+        return null;
     }
 }
